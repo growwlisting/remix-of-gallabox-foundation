@@ -17,11 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import { useCopilot } from "./copilot-provider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getContextForPath } from "@/lib/copilot-context";
-
-const ACTIVE_TASKS = [
-  { label: "Enriching 248 leads from latest import", progress: 64, eta: "≈ 3 min left" },
-  { label: "Drafting follow-ups for stalled deals", progress: 32, eta: "≈ 6 min left" },
-];
+import { useRealtimeAITasks } from "@/hooks/use-growth-data";
 
 const INSIGHTS: Array<{ icon: LucideIcon; title: string; body: string }> = [
   {
