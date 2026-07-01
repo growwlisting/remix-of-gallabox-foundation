@@ -35,6 +35,15 @@ const INSIGHTS: Array<{ icon: LucideIcon; title: string; body: string }> = [
 function CopilotBody() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const ctx = getContextForPath(path);
+  const { data: activeTasks = [] } = useRealtimeAITasks();
+  const tasks = activeTasks.map((t) => ({
+    id: t.id,
+    label: t.task_description ?? t.agent_name,
+    progress: t.progress,
+    eta: t.status === "running" ? `${Math.round((100 - t.progress) * 0.3)} min left` : "Queued",
+  }));
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const ctx = getContextForPath(path);
 
   return (
     <div className="flex h-full flex-col">
