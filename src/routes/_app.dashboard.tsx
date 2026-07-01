@@ -256,35 +256,56 @@ function PipelineChart() {
 }
 
 function RecentActivity() {
+  const { data: tasks, isLoading } = useAITasks();
   return (
     <Card className="lg:col-span-3">
       <CardHeader>
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">
-        {ACTIVITY.map((item, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-4 rounded-lg px-2 py-3 transition-colors hover:bg-muted/50"
-          >
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className={cn("text-sm font-semibold text-white", item.color)}>
-                {item.initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">{item.action}</p>
-              <p className="text-xs text-muted-foreground">{item.meta}</p>
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 px-2 py-3">
+              <Skeleton className="h-9 w-9 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
             </div>
-            <Badge variant="outline" className={cn("text-xs", KIND_STYLES[item.kind])}>
-              {item.kind}
-            </Badge>
-          </div>
-        ))}
+          ))
+        ) : (tasks?.length ?? 0) === 0 ? (
+          <p className="px-2 py-6 text-center text-sm text-muted-foreground">No recent activity.</p>
+        ) : (
+          (tasks ?? []).slice(0, 6).map((t) => {
+            const kind = statusKind(t.status);
+            return (
+              <div
+                key={t.id}
+                className="flex items-center gap-4 rounded-lg px-2 py-3 transition-colors hover:bg-muted/50"
+              >
+                <Avatar className="h-9 w-9">
+                  <AvatarFallback className={cn("text-sm font-semibold text-white", statusColor(t.status))}>
+                    {t.agent_name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">{t.task_description}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t.agent_name} · {relTime(t.created_at)}
+                  </p>
+                </div>
+                <Badge variant="outline" className={cn("text-xs", KIND_STYLES[kind])}>
+                  {t.status}
+                </Badge>
+              </div>
+            );
+          })
+        )}
       </CardContent>
     </Card>
   );
 }
+
 
 function AiInsights() {
   return (
