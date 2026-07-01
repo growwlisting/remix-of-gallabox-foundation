@@ -280,36 +280,50 @@ function AICommandCenterPage() {
           </Button>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {AGENTS.map((agent) => (
-            <article
-              key={agent.name}
-              className="card-hover group relative flex flex-col rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]"
-            >
-              <header className="flex items-start gap-3">
-                <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${agent.tint}`}>
-                  <agent.icon className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm font-semibold text-foreground">{agent.name}</p>
-                    <StatusBadge status={agent.status} />
+          {AGENTS.map((agent) => {
+            const isRunning = runningAgents.has(agent.name);
+            return (
+              <article
+                key={agent.name}
+                className="card-hover group relative flex flex-col rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]"
+              >
+                <header className="flex items-start gap-3">
+                  <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${agent.tint}`}>
+                    <agent.icon className="h-5 w-5" />
                   </div>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    {agent.description}
-                  </p>
-                </div>
-              </header>
-              <footer className="mt-4 flex items-center justify-end border-t border-border pt-3">
-                <Button
-                  size="sm"
-                  className="h-7 px-2.5 text-xs opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 brand-gradient text-brand-foreground hover:opacity-95"
-                >
-                  <Play className="mr-1 h-3 w-3" /> Run Agent
-                </Button>
-              </footer>
-            </article>
-          ))}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold text-foreground">{agent.name}</p>
+                      <StatusBadge status={isRunning ? "Running" : agent.status} />
+                    </div>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                      {agent.description}
+                    </p>
+                  </div>
+                </header>
+                <footer className="mt-4 flex items-center justify-end border-t border-border pt-3">
+                  <Button
+                    size="sm"
+                    disabled={isRunning}
+                    onClick={() => handleRunAgent(agent)}
+                    className="h-7 px-2.5 text-xs opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 brand-gradient text-brand-foreground hover:opacity-95 disabled:opacity-60"
+                  >
+                    {isRunning ? (
+                      <>
+                        <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Running
+                      </>
+                    ) : (
+                      <>
+                        <Play className="mr-1 h-3 w-3" /> Run Agent
+                      </>
+                    )}
+                  </Button>
+                </footer>
+              </article>
+            );
+          })}
         </div>
+
       </section>
 
       {/* Recent activity */}
