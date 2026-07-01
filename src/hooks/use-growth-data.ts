@@ -66,13 +66,16 @@ export function useDeals() {
 
   const queryClient = useQueryClient();
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const channelName = `deals-${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
-      .channel("deals-realtime")
+      .channel(channelName)
       .on("postgres_changes", { event: "*", schema: "public", table: "deals" }, () => {
         queryClient.invalidateQueries({ queryKey: ["deals"] });
       })
       .subscribe();
     return () => {
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
@@ -95,13 +98,16 @@ export function useCampaigns() {
 
   const queryClient = useQueryClient();
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const channelName = `campaigns-${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
-      .channel("campaigns-realtime")
+      .channel(channelName)
       .on("postgres_changes", { event: "*", schema: "public", table: "campaigns" }, () => {
         queryClient.invalidateQueries({ queryKey: ["campaigns"] });
       })
       .subscribe();
     return () => {
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
@@ -127,13 +133,16 @@ export function useContacts() {
 
   const queryClient = useQueryClient();
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const channelName = `contacts-${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
-      .channel("contacts-realtime")
+      .channel(channelName)
       .on("postgres_changes", { event: "*", schema: "public", table: "contacts" }, () => {
         queryClient.invalidateQueries({ queryKey: ["contacts"] });
       })
       .subscribe();
     return () => {
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
@@ -156,13 +165,16 @@ export function useAITasks() {
 
   const queryClient = useQueryClient();
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const channelName = `ai-tasks-${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
-      .channel("ai-tasks-realtime")
+      .channel(channelName)
       .on("postgres_changes", { event: "*", schema: "public", table: "ai_tasks" }, () => {
         queryClient.invalidateQueries({ queryKey: ["ai_tasks"] });
       })
       .subscribe();
     return () => {
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
