@@ -39,6 +39,10 @@ import { withLoading } from "@/components/states/page-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/states/empty-state";
 import { useAITasks } from "@/hooks/use-growth-data";
+import { useProfile } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useMemo } from "react";
 
 const meta = getRouteMeta("/ai-command-center")!;
 
