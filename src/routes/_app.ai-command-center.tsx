@@ -283,56 +283,72 @@ function AICommandCenterPage() {
           </Button>
         </div>
         <div className="p-2">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="px-4">Agent</TableHead>
-                <TableHead>Task</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead className="pr-4">Output</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {ACTIVITY.map((row) => (
-                <TableRow key={row.agent + row.task}>
-                  <TableCell className="px-4">
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className={`grid h-7 w-7 shrink-0 place-items-center rounded-md ${row.tint}`}
-                      >
-                        <row.icon className="h-3.5 w-3.5" />
-                      </span>
-                      <span className="text-xs font-medium text-foreground">{row.agent}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[320px] truncate text-xs text-muted-foreground">
-                    {row.task}
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${ACTIVITY_STATUS[row.status]}`}
-                    >
-                      {row.status === "Running" ? (
-                        <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                      ) : row.status === "Completed" ? (
-                        <CheckCircle2 className="h-2.5 w-2.5" />
-                      ) : (
-                        <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                      )}
-                      {row.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="font-mono text-[11px] tabular-nums text-muted-foreground">
-                    {row.duration}
-                  </TableCell>
-                  <TableCell className="pr-4 text-xs text-foreground">{row.output}</TableCell>
-                </TableRow>
+          {tasksLoading ? (
+            <div className="space-y-2 p-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
               ))}
-            </TableBody>
-          </Table>
+            </div>
+          ) : (tasks?.length ?? 0) === 0 ? (
+            <EmptyState
+              icon={Sparkles}
+              title="No recent agent tasks"
+              description="Run an agent to see activity here."
+            />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="px-4">Agent</TableHead>
+                  <TableHead>Task</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead className="pr-4">Output</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(tasks ?? []).map((row) => {
+                  const style = agentStyleFor(row.agent_name);
+                  const status = normalizeStatus(row.status);
+                  const Icon = style.icon;
+                  return (
+                    <TableRow key={row.id}>
+                      <TableCell className="px-4">
+                        <div className="flex items-center gap-2.5">
+                          <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-md ${style.tint}`}>
+                            <Icon className="h-3.5 w-3.5" />
+                          </span>
+                          <span className="text-xs font-medium text-foreground">{row.agent_name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-[320px] truncate text-xs text-muted-foreground">
+                        {row.task_description}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${ACTIVITY_STATUS[status]}`}>
+                          {status === "Running" ? (
+                            <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                          ) : status === "Completed" ? (
+                            <CheckCircle2 className="h-2.5 w-2.5" />
+                          ) : (
+                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                          )}
+                          {status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                        {relDuration(row.created_at)}
+                      </TableCell>
+                      <TableCell className="pr-4 text-xs text-foreground">{row.result}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
         </div>
       </section>
     </>
   );
 }
+
