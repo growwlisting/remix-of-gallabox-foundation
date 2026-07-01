@@ -133,13 +133,16 @@ export function useContacts() {
 
   const queryClient = useQueryClient();
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const channelName = `contacts-${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
-      .channel("contacts-realtime")
+      .channel(channelName)
       .on("postgres_changes", { event: "*", schema: "public", table: "contacts" }, () => {
         queryClient.invalidateQueries({ queryKey: ["contacts"] });
       })
       .subscribe();
     return () => {
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
