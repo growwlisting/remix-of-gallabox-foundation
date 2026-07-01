@@ -13,7 +13,11 @@ import {
   Phone,
   AlertTriangle,
   Check,
+  Send,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 import { PageHeader } from "@/components/states/page-header";
 import { getRouteMeta } from "@/lib/route-meta";
@@ -223,9 +227,11 @@ function SequenceBuilder({
 function PreviewShell({
   children,
   title = "Email preview",
+  extraActions,
 }: {
   children: React.ReactNode;
   title?: string;
+  extraActions?: React.ReactNode;
 }) {
   return (
     <section className="rounded-xl border border-border bg-card">
@@ -240,12 +246,14 @@ function PreviewShell({
             <Save className="h-4 w-4" />
             Save
           </Button>
+          {extraActions}
         </div>
       </div>
       <div className="p-5">{children}</div>
     </section>
   );
 }
+
 
 function AiToolbar({ items }: { items: string[] }) {
   return (
@@ -282,12 +290,68 @@ We help {Title}s at similar-stage SaaS companies compress their sales cycle by 3
 
 — Ava`,
   );
+  const [testEmail, setTestEmail] = useState("");
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSendTest = async () => {
+    if (!testEmail || !/\S+@\S+\.\S+/.test(testEmail)) {
+      toast.error("Enter a valid test email address");
+      return;
+    }
+    setIsSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: {
+          to: testEmail,
+          subject,
+          body,
+          fromName: "GrowthOS Outreach",
+        },
+      });
+      if (error) throw error;
+      if (data?.ok) toast.success("Test email sent!");
+      else
+        toast.error("Send failed", {
+          description: data?.error ?? "Check your SendGrid key in Supabase secrets.",
+        });
+    } catch (err) {
+      toast.error("Send failed", { description: (err as Error).message });
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,4fr)_minmax(0,6fr)]">
       <SequenceBuilder name="Enterprise SaaS · Q3 outbound" steps={steps} />
 
-      <PreviewShell>
+      <PreviewShell
+        extraActions={
+          <div className="flex items-center gap-1.5">
+            <Input
+              type="email"
+              placeholder="your@email.com"
+              value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)}
+              className="h-8 w-44 text-xs"
+            />
+            <Button
+              size="sm"
+              onClick={handleSendTest}
+              disabled={isSending}
+              className="bg-indigo-600 text-white hover:bg-indigo-600/90"
+            >
+              {isSending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+              Send test
+            </Button>
+          </div>
+        }
+      >
+
         <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Subject
         </label>

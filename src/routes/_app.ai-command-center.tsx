@@ -39,6 +39,10 @@ import { withLoading } from "@/components/states/page-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/states/empty-state";
 import { useAITasks } from "@/hooks/use-growth-data";
+import { useProfile } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useMemo } from "react";
 
 const meta = getRouteMeta("/ai-command-center")!;
 
@@ -143,9 +147,50 @@ const ACTIVITY_STATUS: Record<ActivityStatus, string> = {
 
 function AICommandCenterPage() {
   const { data: tasks, isLoading: tasksLoading } = useAITasks();
+  const { data: profile } = useProfile();
   const completed = 5;
   const total = 18;
   const progress = (completed / total) * 100;
+
+  const runningAgents = useMemo(() => {
+    const set = new Set<string>();
+    (tasks ?? []).forEach((t) => {
+      if (t.status === "running" || t.status === "queued") set.add(t.agent_name);
+    });
+    return set;
+  }, [tasks]);
+
+  const handleRunAgent = async (agent: Agent) => {
+    if (!profile?.workspace_id) {
+      toast.error("No workspace found");
+      return;
+    }
+    const { data: task, error } = await supabase
+      .from("ai_tasks")
+      .insert({
+        agent_name: agent.name,
+        task_description: `Running ${agent.name}...`,
+        workspace_id: profile.workspace_id,
+        status: "queued",
+        progress: 0,
+      })
+      .select()
+      .single();
+    if (error || !task) {
+      toast.error("Failed to queue agent", { description: error?.message });
+      return;
+    }
+    toast(`${agent.name} started`, { description: "Check Active Tasks for progress." });
+    supabase.functions.invoke("run-agent", {
+      body: {
+        agentName: agent.name,
+        taskDescription: `Standard ${agent.name} run`,
+        workspaceId: profile.workspace_id,
+        taskId: task.id,
+      },
+    });
+  };
+
 
 
   return (
@@ -235,36 +280,50 @@ function AICommandCenterPage() {
           </Button>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {AGENTS.map((agent) => (
-            <article
-              key={agent.name}
-              className="card-hover group relative flex flex-col rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]"
-            >
-              <header className="flex items-start gap-3">
-                <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${agent.tint}`}>
-                  <agent.icon className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm font-semibold text-foreground">{agent.name}</p>
-                    <StatusBadge status={agent.status} />
+          {AGENTS.map((agent) => {
+            const isRunning = runningAgents.has(agent.name);
+            return (
+              <article
+                key={agent.name}
+                className="card-hover group relative flex flex-col rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]"
+              >
+                <header className="flex items-start gap-3">
+                  <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${agent.tint}`}>
+                    <agent.icon className="h-5 w-5" />
                   </div>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    {agent.description}
-                  </p>
-                </div>
-              </header>
-              <footer className="mt-4 flex items-center justify-end border-t border-border pt-3">
-                <Button
-                  size="sm"
-                  className="h-7 px-2.5 text-xs opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 brand-gradient text-brand-foreground hover:opacity-95"
-                >
-                  <Play className="mr-1 h-3 w-3" /> Run Agent
-                </Button>
-              </footer>
-            </article>
-          ))}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold text-foreground">{agent.name}</p>
+                      <StatusBadge status={isRunning ? "Running" : agent.status} />
+                    </div>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                      {agent.description}
+                    </p>
+                  </div>
+                </header>
+                <footer className="mt-4 flex items-center justify-end border-t border-border pt-3">
+                  <Button
+                    size="sm"
+                    disabled={isRunning}
+                    onClick={() => handleRunAgent(agent)}
+                    className="h-7 px-2.5 text-xs opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 brand-gradient text-brand-foreground hover:opacity-95 disabled:opacity-60"
+                  >
+                    {isRunning ? (
+                      <>
+                        <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Running
+                      </>
+                    ) : (
+                      <>
+                        <Play className="mr-1 h-3 w-3" /> Run Agent
+                      </>
+                    )}
+                  </Button>
+                </footer>
+              </article>
+            );
+          })}
         </div>
+
       </section>
 
       {/* Recent activity */}

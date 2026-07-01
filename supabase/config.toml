@@ -2,3 +2,9 @@ project_id = "hirrpehgsqrkvdoocfxf"
 
 [functions.copilot-chat]
 verify_jwt = false
+
+[functions.run-agent]
+verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false
