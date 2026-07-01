@@ -13,7 +13,6 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InviteRouteImport } from './routes/invite'
 import { Route as AppRouteImport } from './routes/_app'
-import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppWorkspacesRouteImport } from './routes/_app.workspaces'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppOutreachStudioRouteImport } from './routes/_app.outreach-studio'
@@ -45,11 +44,6 @@ const InviteRoute = InviteRouteImport.update({
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AppIndexRoute = AppIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppRoute,
 } as any)
 const AppWorkspacesRoute = AppWorkspacesRouteImport.update({
   id: '/workspaces',
@@ -113,7 +107,7 @@ const AppAiCommandCenterRoute = AppAiCommandCenterRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AppIndexRoute
+  '/': typeof AppRouteWithChildren
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
@@ -131,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/workspaces': typeof AppWorkspacesRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof AppRouteWithChildren
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
@@ -146,7 +141,6 @@ export interface FileRoutesByTo {
   '/outreach-studio': typeof AppOutreachStudioRoute
   '/settings': typeof AppSettingsRoute
   '/workspaces': typeof AppWorkspacesRoute
-  '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -166,7 +160,6 @@ export interface FileRoutesById {
   '/_app/outreach-studio': typeof AppOutreachStudioRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/workspaces': typeof AppWorkspacesRoute
-  '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -189,6 +182,7 @@ export interface FileRouteTypes {
     | '/workspaces'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/invite'
     | '/login'
     | '/signup'
@@ -204,7 +198,6 @@ export interface FileRouteTypes {
     | '/outreach-studio'
     | '/settings'
     | '/workspaces'
-    | '/'
   id:
     | '__root__'
     | '/_app'
@@ -223,7 +216,6 @@ export interface FileRouteTypes {
     | '/_app/outreach-studio'
     | '/_app/settings'
     | '/_app/workspaces'
-    | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -262,13 +254,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_app/': {
-      id: '/_app/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
     }
     '/_app/workspaces': {
       id: '/_app/workspaces'
@@ -370,7 +355,6 @@ interface AppRouteChildren {
   AppOutreachStudioRoute: typeof AppOutreachStudioRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppWorkspacesRoute: typeof AppWorkspacesRoute
-  AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -386,7 +370,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppOutreachStudioRoute: AppOutreachStudioRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppWorkspacesRoute: AppWorkspacesRoute,
-  AppIndexRoute: AppIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -400,13 +383,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
