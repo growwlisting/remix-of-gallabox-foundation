@@ -147,9 +147,50 @@ const ACTIVITY_STATUS: Record<ActivityStatus, string> = {
 
 function AICommandCenterPage() {
   const { data: tasks, isLoading: tasksLoading } = useAITasks();
+  const { data: profile } = useProfile();
   const completed = 5;
   const total = 18;
   const progress = (completed / total) * 100;
+
+  const runningAgents = useMemo(() => {
+    const set = new Set<string>();
+    (tasks ?? []).forEach((t) => {
+      if (t.status === "running" || t.status === "queued") set.add(t.agent_name);
+    });
+    return set;
+  }, [tasks]);
+
+  const handleRunAgent = async (agent: Agent) => {
+    if (!profile?.workspace_id) {
+      toast.error("No workspace found");
+      return;
+    }
+    const { data: task, error } = await supabase
+      .from("ai_tasks")
+      .insert({
+        agent_name: agent.name,
+        task_description: `Running ${agent.name}...`,
+        workspace_id: profile.workspace_id,
+        status: "queued",
+        progress: 0,
+      })
+      .select()
+      .single();
+    if (error || !task) {
+      toast.error("Failed to queue agent", { description: error?.message });
+      return;
+    }
+    toast(`${agent.name} started`, { description: "Check Active Tasks for progress." });
+    supabase.functions.invoke("run-agent", {
+      body: {
+        agentName: agent.name,
+        taskDescription: `Standard ${agent.name} run`,
+        workspaceId: profile.workspace_id,
+        taskId: task.id,
+      },
+    });
+  };
+
 
 
   return (
