@@ -106,26 +106,32 @@ function CopilotBody() {
                 Active AI Tasks
               </p>
               <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-accent-foreground">
-                {ACTIVE_TASKS.length} running
+                {tasks.length} running
               </span>
             </div>
-            <div className="space-y-2">
-              {ACTIVE_TASKS.map((t) => (
-                <div
-                  key={t.label}
-                  className="rounded-lg border border-border bg-card/70 p-3 shadow-[var(--shadow-soft)] card-hover"
-                >
-                  <div className="flex items-start gap-2">
-                    <Loader2 className="mt-0.5 h-3.5 w-3.5 shrink-0 animate-spin text-primary" />
-                    <p className="min-w-0 flex-1 text-xs font-medium leading-snug text-foreground">{t.label}</p>
+            {tasks.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-border bg-card/40 px-3 py-4 text-center text-[11px] text-muted-foreground">
+                No active tasks
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {tasks.map((t) => (
+                  <div
+                    key={t.id}
+                    className="rounded-lg border border-border bg-card/70 p-3 shadow-[var(--shadow-soft)] card-hover"
+                  >
+                    <div className="flex items-start gap-2">
+                      <Loader2 className="mt-0.5 h-3.5 w-3.5 shrink-0 animate-spin text-primary" />
+                      <p className="min-w-0 flex-1 text-xs font-medium leading-snug text-foreground">{t.label}</p>
+                    </div>
+                    <div className="mt-2.5 flex items-center gap-2">
+                      <Progress value={t.progress} className="h-1 flex-1" />
+                      <span className="text-[10px] text-muted-foreground">{t.eta}</span>
+                    </div>
                   </div>
-                  <div className="mt-2.5 flex items-center gap-2">
-                    <Progress value={t.progress} className="h-1 flex-1" />
-                    <span className="text-[10px] text-muted-foreground">{t.eta}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* AI Insights */}
