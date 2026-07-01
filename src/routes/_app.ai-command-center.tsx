@@ -142,9 +142,11 @@ const ACTIVITY_STATUS: Record<ActivityStatus, string> = {
 };
 
 function AICommandCenterPage() {
+  const { data: tasks, isLoading: tasksLoading } = useAITasks();
   const completed = 5;
   const total = 18;
   const progress = (completed / total) * 100;
+
 
   return (
     <>
