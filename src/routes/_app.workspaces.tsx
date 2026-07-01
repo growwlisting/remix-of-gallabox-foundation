@@ -126,14 +126,31 @@ function WorkspaceCard({
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
               <p className="truncate text-sm font-semibold text-foreground">{workspace.name}</p>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {!workspace.active && (
+                    <DropdownMenuItem onClick={() => onActivate(workspace.id)}>Switch to workspace</DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem disabled>Settings</DropdownMenuItem>
+                  <DropdownMenuItem disabled>Members</DropdownMenuItem>
+                  <DropdownMenuItem disabled className="text-destructive focus:text-destructive">
+                    Leave workspace
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <p className="text-xs text-muted-foreground">/{workspace.slug}</p>
+            <div className="mt-3 flex items-center gap-2">
               {workspace.active && (
                 <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
                   <Check className="mr-1 h-3 w-3" /> Active
                 </Badge>
               )}
-            </div>
-            <p className="text-xs text-muted-foreground">/{workspace.slug}</p>
-            <div className="mt-3 flex items-center gap-3">
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Users className="h-3.5 w-3.5" />
                 {workspace.members} members
@@ -143,23 +160,6 @@ function WorkspaceCard({
               </Badge>
             </div>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {!workspace.active && (
-                <DropdownMenuItem onClick={() => onActivate(workspace.id)}>Switch to workspace</DropdownMenuItem>
-              )}
-              <DropdownMenuItem disabled>Settings</DropdownMenuItem>
-              <DropdownMenuItem disabled>Members</DropdownMenuItem>
-              <DropdownMenuItem disabled className="text-destructive focus:text-destructive">
-                Leave workspace
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </CardContent>
     </Card>
