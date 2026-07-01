@@ -124,8 +124,11 @@ export const Route = createFileRoute("/_app/lead-intelligence")({
 });
 
 function LeadIntelligencePage() {
-  const [selectedId, setSelectedId] = useState<string>(LEADS[0].id);
-  const selected = LEADS.find((l) => l.id === selectedId) ?? LEADS[0];
+  const { data: contacts, isLoading } = useContacts();
+  const leads: Lead[] = (contacts ?? []).map(contactToLead);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = leads.find((l) => l.id === selectedId) ?? leads[0] ?? null;
+
 
   return (
     <>
