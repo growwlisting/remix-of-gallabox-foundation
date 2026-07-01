@@ -42,8 +42,6 @@ function CopilotBody() {
     progress: t.progress,
     eta: t.status === "running" ? `${Math.round((100 - t.progress) * 0.3)} min left` : "Queued",
   }));
-  const path = useRouterState({ select: (s) => s.location.pathname });
-  const ctx = getContextForPath(path);
 
   return (
     <div className="flex h-full flex-col">
