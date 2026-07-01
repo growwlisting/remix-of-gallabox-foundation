@@ -89,7 +89,7 @@ export const Route = createFileRoute("/_app/workspaces")({
       { name: "description", content: meta.description },
     ],
   }),
-  component: withLoading(WorkspacesPage, "card-grid"),
+  component: withLoading(WorkspacesPage, "grid"),
 });
 
 function WorkspaceAvatar({ workspace }: { workspace: Workspace }) {
