@@ -244,21 +244,33 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
+          company: string | null
           created_at: string
+          email: string | null
           full_name: string | null
           id: string
+          role: string
           workspace_id: string | null
         }
         Insert: {
+          avatar_url?: string | null
+          company?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id: string
+          role?: string
           workspace_id?: string | null
         }
         Update: {
+          avatar_url?: string | null
+          company?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
+          role?: string
           workspace_id?: string | null
         }
         Relationships: []
@@ -303,6 +315,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bootstrap_new_user: {
+        Args: { _company: string; _full_name: string }
+        Returns: string
+      }
       current_workspace_id: { Args: never; Returns: string }
     }
     Enums: {
