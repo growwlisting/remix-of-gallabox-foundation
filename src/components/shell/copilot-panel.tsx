@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import {
   Sparkles,
   X,
@@ -7,6 +8,7 @@ import {
   Lightbulb,
   TrendingUp,
   CheckCircle2,
+  Send,
   type LucideIcon,
 } from "lucide-react";
 import { useRouterState } from "@tanstack/react-router";
@@ -18,6 +20,8 @@ import { useCopilot } from "./copilot-provider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getContextForPath } from "@/lib/copilot-context";
 import { useRealtimeAITasks } from "@/hooks/use-growth-data";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 const INSIGHTS: Array<{ icon: LucideIcon; title: string; body: string }> = [
   {
@@ -32,6 +36,18 @@ const INSIGHTS: Array<{ icon: LucideIcon; title: string; body: string }> = [
   },
 ];
 
+type ChatMsg = { role: "user" | "assistant"; content: string };
+
+function TypingDots() {
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
+    </span>
+  );
+}
+
 function CopilotBody() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const ctx = getContextForPath(path);
@@ -42,6 +58,47 @@ function CopilotBody() {
     progress: t.progress,
     eta: t.status === "running" ? `${Math.round((100 - t.progress) * 0.3)} min left` : "Queued",
   }));
+
+  const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const scrollEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, isLoading]);
+
+  const sendMessage = async (raw: string) => {
+    const text = raw.trim();
+    if (!text || isLoading) return;
+    const history = messages.slice(-6);
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
+    setInputValue("");
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("copilot-chat", {
+        body: {
+          message: text,
+          context: `${ctx.label}: ${ctx.summary}`,
+          history,
+        },
+      });
+      const reply =
+        (data as { reply?: string } | null)?.reply ??
+        (error ? `Error: ${error.message}` : "I could not process that request.");
+      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: `Error: ${(err as Error).message}` },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSend = () => void sendMessage(inputValue);
+  const handleChip = (label: string) => void sendMessage(label);
 
   return (
     <div className="flex h-full flex-col">
@@ -63,7 +120,9 @@ function CopilotBody() {
                 <button
                   key={a.label}
                   type="button"
-                  className="group flex w-full items-center gap-2 rounded-md border border-border bg-card/80 px-2.5 py-2 text-left text-xs font-medium text-foreground transition-all hover:border-primary/40 hover:bg-card hover:shadow-[var(--shadow-soft)]"
+                  onClick={() => handleChip(a.label)}
+                  disabled={isLoading}
+                  className="group flex w-full items-center gap-2 rounded-md border border-border bg-card/80 px-2.5 py-2 text-left text-xs font-medium text-foreground transition-all hover:border-primary/40 hover:bg-card hover:shadow-[var(--shadow-soft)] disabled:opacity-60"
                 >
                   <a.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
                   <span className="min-w-0 flex-1 truncate">{a.label}</span>
@@ -157,6 +216,51 @@ function CopilotBody() {
             </div>
           </section>
 
+          {/* Chat */}
+          {(messages.length > 0 || isLoading) && (
+            <section>
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Conversation
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setMessages([])}
+                  className="text-[10px] text-muted-foreground hover:text-foreground"
+                >
+                  Clear chat
+                </button>
+              </div>
+              <div className="space-y-2">
+                {messages.map((m, i) => (
+                  <div
+                    key={i}
+                    className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}
+                  >
+                    <div
+                      className={cn(
+                        "max-w-[85%] rounded-lg p-2.5 text-xs leading-relaxed whitespace-pre-wrap",
+                        m.role === "user"
+                          ? "bg-indigo-600 text-white"
+                          : "bg-card border border-border text-muted-foreground",
+                      )}
+                    >
+                      {m.content}
+                    </div>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[85%] rounded-lg border border-border bg-card p-2.5">
+                      <TypingDots />
+                    </div>
+                  </div>
+                )}
+                <div ref={scrollEndRef} />
+              </div>
+            </section>
+          )}
+
           <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
             <CheckCircle2 className="h-3 w-3 text-success" />
             Grounded in your workspace data
@@ -168,10 +272,26 @@ function CopilotBody() {
         <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 shadow-[var(--shadow-soft)] transition-shadow focus-within:shadow-[var(--shadow-glow)]">
           <Sparkles className="h-4 w-4 text-primary" />
           <input
-            disabled
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
             placeholder={ctx.placeholder}
             className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
           />
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={!inputValue.trim() || isLoading}
+            aria-label="Send message"
+            className="grid h-7 w-7 place-items-center rounded-md bg-indigo-600 text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+          >
+            {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+          </button>
         </div>
         <p className="mt-2 text-center text-[10px] text-muted-foreground">
           Your intelligent teammate · context-aware on every page
