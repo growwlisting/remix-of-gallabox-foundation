@@ -9,6 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as InviteRouteImport } from './routes/invite'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppWorkspacesRouteImport } from './routes/_app.workspaces'
@@ -24,6 +27,21 @@ import { Route as AppAutomationStudioRouteImport } from './routes/_app.automatio
 import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
 import { Route as AppAiCommandCenterRouteImport } from './routes/_app.ai-command-center'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteRoute = InviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -96,6 +114,9 @@ const AppAiCommandCenterRoute = AppAiCommandCenterRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/invite': typeof InviteRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/ai-command-center': typeof AppAiCommandCenterRoute
   '/analytics': typeof AppAnalyticsRoute
   '/automation-studio': typeof AppAutomationStudioRoute
@@ -110,6 +131,9 @@ export interface FileRoutesByFullPath {
   '/workspaces': typeof AppWorkspacesRoute
 }
 export interface FileRoutesByTo {
+  '/invite': typeof InviteRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/ai-command-center': typeof AppAiCommandCenterRoute
   '/analytics': typeof AppAnalyticsRoute
   '/automation-studio': typeof AppAutomationStudioRoute
@@ -127,6 +151,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/invite': typeof InviteRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/_app/ai-command-center': typeof AppAiCommandCenterRoute
   '/_app/analytics': typeof AppAnalyticsRoute
   '/_app/automation-studio': typeof AppAutomationStudioRoute
@@ -145,6 +172,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/invite'
+    | '/login'
+    | '/signup'
     | '/ai-command-center'
     | '/analytics'
     | '/automation-studio'
@@ -159,6 +189,9 @@ export interface FileRouteTypes {
     | '/workspaces'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/invite'
+    | '/login'
+    | '/signup'
     | '/ai-command-center'
     | '/analytics'
     | '/automation-studio'
@@ -175,6 +208,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
+    | '/invite'
+    | '/login'
+    | '/signup'
     | '/_app/ai-command-center'
     | '/_app/analytics'
     | '/_app/automation-studio'
@@ -192,10 +228,34 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  InviteRoute: typeof InviteRoute
+  LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite': {
+      id: '/invite'
+      path: '/invite'
+      fullPath: '/invite'
+      preLoaderRoute: typeof InviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -333,6 +393,9 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  InviteRoute: InviteRoute,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
