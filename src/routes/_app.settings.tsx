@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { PageHeader } from "@/components/states/page-header";
+import { withLoading } from "@/components/states/page-skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
