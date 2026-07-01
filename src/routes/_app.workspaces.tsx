@@ -257,7 +257,7 @@ function WorkspacesPage() {
           description="Create your first workspace to get started."
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
           {workspaces.map((workspace) => (
             <WorkspaceCard key={workspace.id} workspace={workspace} onActivate={handleActivate} />
           ))}
