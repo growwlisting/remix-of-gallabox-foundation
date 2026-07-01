@@ -36,6 +36,9 @@ import {
 } from "@/components/ui/table";
 import { getRouteMeta } from "@/lib/route-meta";
 import { withLoading } from "@/components/states/page-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/states/empty-state";
+import { useAITasks } from "@/hooks/use-growth-data";
 
 const meta = getRouteMeta("/ai-command-center")!;
 
@@ -100,74 +103,50 @@ function StatusBadge({ status }: { status: AgentStatus }) {
   );
 }
 
-type ActivityRow = {
-  agent: string;
-  icon: LucideIcon;
-  tint: string;
-  task: string;
-  status: "Completed" | "Running" | "Failed";
-  duration: string;
-  output: string;
+type ActivityStatus = "Completed" | "Running" | "Failed";
+
+const AGENT_STYLE: Record<string, { icon: LucideIcon; tint: string }> = {
+  "Company Research": { icon: Building2, tint: "bg-blue-500/10 text-blue-500" },
+  "Outreach Writer": { icon: PenLine, tint: "bg-emerald-500/10 text-emerald-500" },
+  "Buying Signals": { icon: Radar, tint: "bg-cyan-500/10 text-cyan-500" },
+  "Lead Scoring": { icon: Gauge, tint: "bg-teal-500/10 text-teal-500" },
+  "Meeting Coach": { icon: CalendarCheck2, tint: "bg-orange-500/10 text-orange-500" },
 };
 
-const ACTIVITY: ActivityRow[] = [
-  {
-    agent: "Company Research",
-    icon: Building2,
-    tint: "bg-blue-500/10 text-blue-500",
-    task: "Enrich 25 target accounts in Apollo list",
-    status: "Completed",
-    duration: "4m 12s",
-    output: "25 accounts enriched",
-  },
-  {
-    agent: "Outreach Writer",
-    icon: PenLine,
-    tint: "bg-emerald-500/10 text-emerald-500",
-    task: "Draft re-engagement emails for stalled deals",
-    status: "Running",
-    duration: "1m 48s",
-    output: "12 / 18 drafted",
-  },
-  {
-    agent: "Buying Signals",
-    icon: Radar,
-    tint: "bg-cyan-500/10 text-cyan-500",
-    task: "Scan Q3 pipeline for competitor evaluation",
-    status: "Completed",
-    duration: "2m 05s",
-    output: "5 hot signals",
-  },
-  {
-    agent: "Lead Scoring",
-    icon: Gauge,
-    tint: "bg-teal-500/10 text-teal-500",
-    task: "Re-score inbound leads from last 7 days",
-    status: "Completed",
-    duration: "38s",
-    output: "142 leads scored",
-  },
-  {
-    agent: "Meeting Coach",
-    icon: CalendarCheck2,
-    tint: "bg-orange-500/10 text-orange-500",
-    task: "Prep brief for Northwind Q3 renewal call",
-    status: "Failed",
-    duration: "12s",
-    output: "Missing CRM context",
-  },
-];
+function agentStyleFor(name: string): { icon: LucideIcon; tint: string } {
+  return AGENT_STYLE[name] ?? { icon: Sparkles, tint: "bg-muted text-muted-foreground" };
+}
 
-const ACTIVITY_STATUS: Record<ActivityRow["status"], string> = {
+function normalizeStatus(s: string): ActivityStatus {
+  const v = s.toLowerCase();
+  if (v === "running") return "Running";
+  if (v === "failed") return "Failed";
+  return "Completed";
+}
+
+function relDuration(iso: string): string {
+  const diff = Math.max(0, Date.now() - new Date(iso).getTime());
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  if (m < 60) return `${m}m ${String(rem).padStart(2, "0")}s`;
+  const h = Math.floor(m / 60);
+  return `${h}h ${m % 60}m`;
+}
+
+const ACTIVITY_STATUS: Record<ActivityStatus, string> = {
   Completed: "bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/25 dark:text-emerald-400",
   Running: "bg-indigo-500/10 text-indigo-600 ring-1 ring-indigo-500/30 dark:text-indigo-400",
   Failed: "bg-rose-500/10 text-rose-600 ring-1 ring-rose-500/25 dark:text-rose-400",
 };
 
 function AICommandCenterPage() {
+  const { data: tasks, isLoading: tasksLoading } = useAITasks();
   const completed = 5;
   const total = 18;
   const progress = (completed / total) * 100;
+
 
   return (
     <>
@@ -304,56 +283,72 @@ function AICommandCenterPage() {
           </Button>
         </div>
         <div className="p-2">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="px-4">Agent</TableHead>
-                <TableHead>Task</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead className="pr-4">Output</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {ACTIVITY.map((row) => (
-                <TableRow key={row.agent + row.task}>
-                  <TableCell className="px-4">
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className={`grid h-7 w-7 shrink-0 place-items-center rounded-md ${row.tint}`}
-                      >
-                        <row.icon className="h-3.5 w-3.5" />
-                      </span>
-                      <span className="text-xs font-medium text-foreground">{row.agent}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[320px] truncate text-xs text-muted-foreground">
-                    {row.task}
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${ACTIVITY_STATUS[row.status]}`}
-                    >
-                      {row.status === "Running" ? (
-                        <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                      ) : row.status === "Completed" ? (
-                        <CheckCircle2 className="h-2.5 w-2.5" />
-                      ) : (
-                        <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                      )}
-                      {row.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="font-mono text-[11px] tabular-nums text-muted-foreground">
-                    {row.duration}
-                  </TableCell>
-                  <TableCell className="pr-4 text-xs text-foreground">{row.output}</TableCell>
-                </TableRow>
+          {tasksLoading ? (
+            <div className="space-y-2 p-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
               ))}
-            </TableBody>
-          </Table>
+            </div>
+          ) : (tasks?.length ?? 0) === 0 ? (
+            <EmptyState
+              icon={Sparkles}
+              title="No recent agent tasks"
+              description="Run an agent to see activity here."
+            />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="px-4">Agent</TableHead>
+                  <TableHead>Task</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead className="pr-4">Output</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(tasks ?? []).map((row) => {
+                  const style = agentStyleFor(row.agent_name);
+                  const status = normalizeStatus(row.status);
+                  const Icon = style.icon;
+                  return (
+                    <TableRow key={row.id}>
+                      <TableCell className="px-4">
+                        <div className="flex items-center gap-2.5">
+                          <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-md ${style.tint}`}>
+                            <Icon className="h-3.5 w-3.5" />
+                          </span>
+                          <span className="text-xs font-medium text-foreground">{row.agent_name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-[320px] truncate text-xs text-muted-foreground">
+                        {row.task_description}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${ACTIVITY_STATUS[status]}`}>
+                          {status === "Running" ? (
+                            <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                          ) : status === "Completed" ? (
+                            <CheckCircle2 className="h-2.5 w-2.5" />
+                          ) : (
+                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                          )}
+                          {status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                        {relDuration(row.created_at)}
+                      </TableCell>
+                      <TableCell className="pr-4 text-xs text-foreground">{row.result}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
         </div>
       </section>
     </>
   );
 }
+

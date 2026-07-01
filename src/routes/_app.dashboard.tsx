@@ -28,6 +28,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getRouteMeta } from "@/lib/route-meta";
 import { cn } from "@/lib/utils";
 import { withLoading } from "@/components/states/page-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAITasks, relTime } from "@/hooks/use-growth-data";
 
 const meta = getRouteMeta("/dashboard")!;
 
@@ -91,63 +93,26 @@ const PIPELINE_DATA = [
 
 type ActivityKind = "Meeting" | "Deal" | "Lead" | "Email";
 
-const ACTIVITY: {
-  initials: string;
-  color: string;
-  action: string;
-  meta: string;
-  kind: ActivityKind;
-}[] = [
-  {
-    initials: "N",
-    color: "bg-indigo-500",
-    action: "Discovery call scheduled with Notion",
-    meta: "Notion · 2h ago",
-    kind: "Meeting",
-  },
-  {
-    initials: "S",
-    color: "bg-emerald-500",
-    action: "Stripe moved to Proposal stage",
-    meta: "Stripe · 4h ago",
-    kind: "Deal",
-  },
-  {
-    initials: "F",
-    color: "bg-violet-500",
-    action: "New inbound lead from Figma",
-    meta: "Figma · 6h ago",
-    kind: "Lead",
-  },
-  {
-    initials: "L",
-    color: "bg-blue-500",
-    action: "Follow-up sequence sent to Linear",
-    meta: "Linear · 9h ago",
-    kind: "Email",
-  },
-  {
-    initials: "V",
-    color: "bg-rose-500",
-    action: "Vercel signed the pilot agreement",
-    meta: "Vercel · yesterday",
-    kind: "Deal",
-  },
-  {
-    initials: "A",
-    color: "bg-amber-500",
-    action: "Airtable requested a technical review",
-    meta: "Airtable · yesterday",
-    kind: "Meeting",
-  },
-];
-
 const KIND_STYLES: Record<ActivityKind, string> = {
   Meeting: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-transparent",
   Deal: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-transparent",
   Lead: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-transparent",
   Email: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-transparent",
 };
+
+function statusKind(status: string): ActivityKind {
+  const s = status.toLowerCase();
+  if (s === "running") return "Email";
+  if (s === "failed") return "Meeting";
+  return "Deal";
+}
+
+function statusColor(status: string): string {
+  const s = status.toLowerCase();
+  if (s === "running") return "bg-indigo-500";
+  if (s === "failed") return "bg-rose-500";
+  return "bg-emerald-500";
+}
 
 const INSIGHTS: {
   icon: LucideIcon;
@@ -291,35 +256,56 @@ function PipelineChart() {
 }
 
 function RecentActivity() {
+  const { data: tasks, isLoading } = useAITasks();
   return (
     <Card className="lg:col-span-3">
       <CardHeader>
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">
-        {ACTIVITY.map((item, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-4 rounded-lg px-2 py-3 transition-colors hover:bg-muted/50"
-          >
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className={cn("text-sm font-semibold text-white", item.color)}>
-                {item.initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">{item.action}</p>
-              <p className="text-xs text-muted-foreground">{item.meta}</p>
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 px-2 py-3">
+              <Skeleton className="h-9 w-9 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
             </div>
-            <Badge variant="outline" className={cn("text-xs", KIND_STYLES[item.kind])}>
-              {item.kind}
-            </Badge>
-          </div>
-        ))}
+          ))
+        ) : (tasks?.length ?? 0) === 0 ? (
+          <p className="px-2 py-6 text-center text-sm text-muted-foreground">No recent activity.</p>
+        ) : (
+          (tasks ?? []).slice(0, 6).map((t) => {
+            const kind = statusKind(t.status);
+            return (
+              <div
+                key={t.id}
+                className="flex items-center gap-4 rounded-lg px-2 py-3 transition-colors hover:bg-muted/50"
+              >
+                <Avatar className="h-9 w-9">
+                  <AvatarFallback className={cn("text-sm font-semibold text-white", statusColor(t.status))}>
+                    {t.agent_name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">{t.task_description}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t.agent_name} · {relTime(t.created_at)}
+                  </p>
+                </div>
+                <Badge variant="outline" className={cn("text-xs", KIND_STYLES[kind])}>
+                  {t.status}
+                </Badge>
+              </div>
+            );
+          })
+        )}
       </CardContent>
     </Card>
   );
 }
+
 
 function AiInsights() {
   return (
