@@ -93,63 +93,26 @@ const PIPELINE_DATA = [
 
 type ActivityKind = "Meeting" | "Deal" | "Lead" | "Email";
 
-const ACTIVITY: {
-  initials: string;
-  color: string;
-  action: string;
-  meta: string;
-  kind: ActivityKind;
-}[] = [
-  {
-    initials: "N",
-    color: "bg-indigo-500",
-    action: "Discovery call scheduled with Notion",
-    meta: "Notion · 2h ago",
-    kind: "Meeting",
-  },
-  {
-    initials: "S",
-    color: "bg-emerald-500",
-    action: "Stripe moved to Proposal stage",
-    meta: "Stripe · 4h ago",
-    kind: "Deal",
-  },
-  {
-    initials: "F",
-    color: "bg-violet-500",
-    action: "New inbound lead from Figma",
-    meta: "Figma · 6h ago",
-    kind: "Lead",
-  },
-  {
-    initials: "L",
-    color: "bg-blue-500",
-    action: "Follow-up sequence sent to Linear",
-    meta: "Linear · 9h ago",
-    kind: "Email",
-  },
-  {
-    initials: "V",
-    color: "bg-rose-500",
-    action: "Vercel signed the pilot agreement",
-    meta: "Vercel · yesterday",
-    kind: "Deal",
-  },
-  {
-    initials: "A",
-    color: "bg-amber-500",
-    action: "Airtable requested a technical review",
-    meta: "Airtable · yesterday",
-    kind: "Meeting",
-  },
-];
-
 const KIND_STYLES: Record<ActivityKind, string> = {
   Meeting: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-transparent",
   Deal: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-transparent",
   Lead: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-transparent",
   Email: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-transparent",
 };
+
+function statusKind(status: string): ActivityKind {
+  const s = status.toLowerCase();
+  if (s === "running") return "Email";
+  if (s === "failed") return "Meeting";
+  return "Deal";
+}
+
+function statusColor(status: string): string {
+  const s = status.toLowerCase();
+  if (s === "running") return "bg-indigo-500";
+  if (s === "failed") return "bg-rose-500";
+  return "bg-emerald-500";
+}
 
 const INSIGHTS: {
   icon: LucideIcon;
