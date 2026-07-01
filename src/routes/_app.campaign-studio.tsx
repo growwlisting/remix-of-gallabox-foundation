@@ -28,7 +28,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getRouteMeta } from "@/lib/route-meta";
-import { withLoading } from "@/components/states/page-skeleton";
+import { withLoading, PageSkeleton } from "@/components/states/page-skeleton";
+import { EmptyState } from "@/components/states/empty-state";
+import { useCampaigns } from "@/hooks/use-growth-data";
 import { cn } from "@/lib/utils";
 
 const meta = getRouteMeta("/campaign-studio")!;
