@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export type DealRow = {
@@ -51,7 +52,7 @@ export type AITaskRow = {
 };
 
 export function useDeals() {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["deals"],
     queryFn: async (): Promise<DealRow[]> => {
       const { data, error } = await supabase
@@ -62,10 +63,25 @@ export function useDeals() {
       return (data ?? []) as DealRow[];
     },
   });
+
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const channel = supabase
+      .channel("deals-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "deals" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["deals"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  return query;
 }
 
 export function useCampaigns() {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["campaigns"],
     queryFn: async (): Promise<CampaignRow[]> => {
       const { data, error } = await supabase
@@ -76,10 +92,25 @@ export function useCampaigns() {
       return (data ?? []) as CampaignRow[];
     },
   });
+
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const channel = supabase
+      .channel("campaigns-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "campaigns" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  return query;
 }
 
 export function useContacts() {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["contacts"],
     queryFn: async (): Promise<ContactRow[]> => {
       const { data, error } = await supabase
@@ -93,10 +124,25 @@ export function useContacts() {
       })) as ContactRow[];
     },
   });
+
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const channel = supabase
+      .channel("contacts-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "contacts" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  return query;
 }
 
 export function useAITasks() {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["ai_tasks"],
     queryFn: async (): Promise<AITaskRow[]> => {
       const { data, error } = await supabase
@@ -107,6 +153,28 @@ export function useAITasks() {
       return (data ?? []) as AITaskRow[];
     },
   });
+
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const channel = supabase
+      .channel("ai-tasks-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "ai_tasks" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["ai_tasks"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  return query;
+}
+
+/** Live ai_tasks filtered to status = 'running' or 'queued'. */
+export function useRealtimeAITasks() {
+  const { data, ...rest } = useAITasks();
+  const active = (data ?? []).filter((t) => t.status === "running" || t.status === "queued");
+  return { ...rest, data: active };
 }
 
 /** Short relative time like "2h ago", "1d ago". */
