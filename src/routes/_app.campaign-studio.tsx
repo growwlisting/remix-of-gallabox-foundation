@@ -58,57 +58,6 @@ interface Campaign {
   lastActivity: string;
 }
 
-const CAMPAIGNS: Campaign[] = [
-  {
-    id: "1",
-    name: "Enterprise SaaS - Q3 Outreach",
-    status: "Active",
-    channels: ["email", "linkedin"],
-    sent: 847,
-    opened: 31,
-    replied: 8,
-    meetings: 12,
-    progress: 68,
-    lastActivity: "2 min ago",
-  },
-  {
-    id: "2",
-    name: "SMB Re-engagement Wave",
-    status: "Active",
-    channels: ["email", "whatsapp"],
-    sent: 312,
-    opened: 44,
-    replied: 12,
-    meetings: 8,
-    progress: 45,
-    lastActivity: "15 min ago",
-  },
-  {
-    id: "3",
-    name: "Series B Founders Sequence",
-    status: "Draft",
-    channels: ["linkedin"],
-    sent: 0,
-    opened: 0,
-    replied: 0,
-    meetings: 0,
-    progress: 0,
-    lastActivity: "3h ago",
-  },
-  {
-    id: "4",
-    name: "Churn Risk Win-back",
-    status: "Paused",
-    channels: ["email"],
-    sent: 156,
-    opened: 28,
-    replied: 5,
-    meetings: 3,
-    progress: 32,
-    lastActivity: "1 day ago",
-  },
-];
-
 interface LiveCampaign {
   id: string;
   name: string;
@@ -117,33 +66,6 @@ interface LiveCampaign {
   sentToday: number;
   nextAction: string;
 }
-
-const LIVE_CAMPAIGNS: LiveCampaign[] = [
-  {
-    id: "1",
-    name: "Enterprise SaaS - Q3 Outreach",
-    status: "Active",
-    leadsInQueue: 284,
-    sentToday: 47,
-    nextAction: "Follow-up batch in 12 min",
-  },
-  {
-    id: "2",
-    name: "SMB Re-engagement Wave",
-    status: "Active",
-    leadsInQueue: 156,
-    sentToday: 23,
-    nextAction: "WhatsApp nudge in 8 min",
-  },
-  {
-    id: "4",
-    name: "Churn Risk Win-back",
-    status: "Paused",
-    leadsInQueue: 89,
-    sentToday: 0,
-    nextAction: "Resume scheduled for Mon",
-  },
-];
 
 const STATUS_STYLES: Record<CampaignStatus, string> = {
   Active:
