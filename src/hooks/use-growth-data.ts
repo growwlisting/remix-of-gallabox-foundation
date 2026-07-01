@@ -98,13 +98,16 @@ export function useCampaigns() {
 
   const queryClient = useQueryClient();
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const channelName = `campaigns-${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
-      .channel("campaigns-realtime")
+      .channel(channelName)
       .on("postgres_changes", { event: "*", schema: "public", table: "campaigns" }, () => {
         queryClient.invalidateQueries({ queryKey: ["campaigns"] });
       })
       .subscribe();
     return () => {
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
