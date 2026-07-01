@@ -216,126 +216,136 @@ function LeadIntelligencePage() {
       </div>
 
       {/* Table + Detail panel */}
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="rounded-xl border border-border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-10 pl-4">
-                  <Checkbox />
-                </TableHead>
-                <TableHead>Lead</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Score</TableHead>
-                <TableHead>Signals</TableHead>
-                <TableHead>Stage</TableHead>
-                <TableHead>Last Activity</TableHead>
-                <TableHead className="text-right pr-4">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {LEADS.map((lead) => (
-                <TableRow
-                  key={lead.id}
-                  onClick={() => setSelectedId(lead.id)}
-                  className={cn(
-                    "cursor-pointer",
-                    lead.id === selectedId && "bg-muted/50",
-                  )}
-                >
-                  <TableCell className="pl-4" onClick={(e) => e.stopPropagation()}>
+      {isLoading ? (
+        <div className="mt-6"><PageSkeleton variant="table" /></div>
+      ) : leads.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="No leads yet"
+          description="Import leads or find new ICP matches to get started."
+        />
+      ) : (
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="rounded-xl border border-border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-10 pl-4">
                     <Checkbox />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-xs font-medium text-white">
-                          {initials(lead.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-medium text-foreground">
-                          {lead.name}
-                        </div>
-                        <div className="truncate text-xs text-muted-foreground">
-                          {lead.title}
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted">
-                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                      </div>
-                      <span className="text-sm text-foreground">{lead.company}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold",
-                        scoreTone(lead.score),
-                      )}
-                    >
-                      {lead.score >= 80 && <Flame className="h-3 w-3" />}
-                      {lead.score}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {lead.signals.map((s) => (
-                        <span
-                          key={s.label}
-                          className={cn(
-                            "rounded-md border px-1.5 py-0.5 text-[11px] font-medium",
-                            SIGNAL_TONE[s.tone],
-                          )}
-                        >
-                          {s.label}
-                        </span>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={cn("font-medium", STAGE_TONE[lead.stage])}
-                    >
-                      {lead.stage}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {lead.lastActivity}
-                  </TableCell>
-                  <TableCell
-                    className="pr-4 text-right"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      <Button size="icon" variant="ghost" title="Research">
-                        <Search className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="ghost" title="Outreach">
-                        <Send className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="ghost" title="Add to campaign">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+                  </TableHead>
+                  <TableHead>Lead</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Score</TableHead>
+                  <TableHead>Signals</TableHead>
+                  <TableHead>Stage</TableHead>
+                  <TableHead>Last Activity</TableHead>
+                  <TableHead className="text-right pr-4">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {leads.map((lead) => (
+                  <TableRow
+                    key={lead.id}
+                    onClick={() => setSelectedId(lead.id)}
+                    className={cn(
+                      "cursor-pointer",
+                      lead.id === selected?.id && "bg-muted/50",
+                    )}
+                  >
+                    <TableCell className="pl-4" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-xs font-medium text-white">
+                            {initials(lead.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-medium text-foreground">
+                            {lead.name}
+                          </div>
+                          <div className="truncate text-xs text-muted-foreground">
+                            {lead.title}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted">
+                          <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
+                        <span className="text-sm text-foreground">{lead.company}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold",
+                          scoreTone(lead.score),
+                        )}
+                      >
+                        {lead.score >= 80 && <Flame className="h-3 w-3" />}
+                        {lead.score}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {lead.signals.map((s) => (
+                          <span
+                            key={s.label}
+                            className={cn(
+                              "rounded-md border px-1.5 py-0.5 text-[11px] font-medium",
+                              SIGNAL_TONE[s.tone],
+                            )}
+                          >
+                            {s.label}
+                          </span>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={cn("font-medium", STAGE_TONE[lead.stage])}
+                      >
+                        {lead.stage}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {lead.lastActivity}
+                    </TableCell>
+                    <TableCell
+                      className="pr-4 text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        <Button size="icon" variant="ghost" title="Research">
+                          <Search className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" title="Outreach">
+                          <Send className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" title="Add to campaign">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
-        {/* Detail panel */}
-        <LeadDetailPanel lead={selected} />
-      </div>
+          {selected && <LeadDetailPanel lead={selected} />}
+        </div>
+      )}
     </>
   );
 }
+
 
 function LeadDetailPanel({ lead }: { lead: Lead }) {
   const breakdown = [
