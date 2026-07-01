@@ -16,7 +16,8 @@ import {
 
 import { PageHeader } from "@/components/states/page-header";
 import { getRouteMeta } from "@/lib/route-meta";
-import { withLoading } from "@/components/states/page-skeleton";
+import { withLoading, PageSkeleton } from "@/components/states/page-skeleton";
+import { EmptyState } from "@/components/states/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +40,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { useContacts, relTime, type ContactRow } from "@/hooks/use-growth-data";
 
 const meta = getRouteMeta("/lead-intelligence")!;
 
