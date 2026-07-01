@@ -45,6 +45,7 @@ import { useContacts, relTime, type ContactRow } from "@/hooks/use-growth-data";
 const meta = getRouteMeta("/lead-intelligence")!;
 
 type SignalTone = "intent" | "hiring" | "funding" | "tech";
+type LeadStage = "Hot" | "Warm" | "Cold" | "Nurture";
 
 type Lead = {
   id: string;
@@ -54,148 +55,29 @@ type Lead = {
   companyDomain: string;
   score: number;
   signals: { label: string; tone: SignalTone }[];
-  stage: "Hot" | "Warm" | "Cold" | "Nurture";
+  stage: LeadStage;
   lastActivity: string;
 };
 
-const LEADS: Lead[] = [
-  {
-    id: "1",
-    name: "Sarah Chen",
-    title: "VP Sales",
-    company: "Notion",
-    companyDomain: "notion.so",
-    score: 94,
-    signals: [
-      { label: "Visited pricing 3x", tone: "intent" },
-      { label: "Hired 2 SDRs", tone: "hiring" },
-    ],
-    stage: "Hot",
-    lastActivity: "2h ago",
-  },
-  {
-    id: "2",
-    name: "James Park",
-    title: "CTO",
-    company: "Linear",
-    companyDomain: "linear.app",
-    score: 81,
-    signals: [
-      { label: "Series B announced", tone: "funding" },
-      { label: "Tech stack match", tone: "tech" },
-    ],
-    stage: "Warm",
-    lastActivity: "1d ago",
-  },
-  {
-    id: "3",
-    name: "Priya Nair",
-    title: "Head of Growth",
-    company: "Figma",
-    companyDomain: "figma.com",
-    score: 88,
-    signals: [
-      { label: "Requested demo", tone: "intent" },
-      { label: "Hiring RevOps", tone: "hiring" },
-    ],
-    stage: "Hot",
-    lastActivity: "4h ago",
-  },
-  {
-    id: "4",
-    name: "Marcus Weber",
-    title: "Director of RevOps",
-    company: "Vercel",
-    companyDomain: "vercel.com",
-    score: 76,
-    signals: [
-      { label: "Downloaded whitepaper", tone: "intent" },
-    ],
-    stage: "Warm",
-    lastActivity: "3h ago",
-  },
-  {
-    id: "5",
-    name: "Aisha Rahman",
-    title: "VP Marketing",
-    company: "Ramp",
-    companyDomain: "ramp.com",
-    score: 72,
-    signals: [
-      { label: "Series C funding", tone: "funding" },
-      { label: "Hired 5 AEs", tone: "hiring" },
-    ],
-    stage: "Warm",
-    lastActivity: "6h ago",
-  },
-  {
-    id: "6",
-    name: "David Okonkwo",
-    title: "Chief Revenue Officer",
-    company: "Retool",
-    companyDomain: "retool.com",
-    score: 85,
-    signals: [
-      { label: "Opened 4 emails", tone: "intent" },
-      { label: "Uses Salesforce", tone: "tech" },
-    ],
-    stage: "Hot",
-    lastActivity: "1h ago",
-  },
-  {
-    id: "7",
-    name: "Emma Larsson",
-    title: "Head of Sales Ops",
-    company: "Airtable",
-    companyDomain: "airtable.com",
-    score: 58,
-    signals: [
-      { label: "Attended webinar", tone: "intent" },
-    ],
-    stage: "Nurture",
-    lastActivity: "2d ago",
-  },
-  {
-    id: "8",
-    name: "Rohan Mehta",
-    title: "VP Engineering",
-    company: "PlanetScale",
-    companyDomain: "planetscale.com",
-    score: 63,
-    signals: [
-      { label: "Tech stack match", tone: "tech" },
-    ],
-    stage: "Warm",
-    lastActivity: "5d ago",
-  },
-  {
-    id: "9",
-    name: "Lena Cortez",
-    title: "Head of Demand Gen",
-    company: "Webflow",
-    companyDomain: "webflow.com",
-    score: 42,
-    signals: [
-      { label: "Newsletter subscriber", tone: "intent" },
-    ],
-    stage: "Cold",
-    lastActivity: "2w ago",
-  },
-  {
-    id: "10",
-    name: "Tomás Rivera",
-    title: "Sales Director EMEA",
-    company: "Stripe",
-    companyDomain: "stripe.com",
-    score: 79,
-    signals: [
-      { label: "Visited pricing 2x", tone: "intent" },
-      { label: "Expanding EMEA team", tone: "hiring" },
-    ],
-    stage: "Warm",
-    lastActivity: "8h ago",
-  },
-];
+function contactToLead(c: ContactRow): Lead {
+  const name = [c.first_name, c.last_name].filter(Boolean).join(" ") || "Unknown";
+  const domain = c.email?.split("@")[1] ?? "";
+  const rawStage = c.stage as LeadStage;
+  const stage: LeadStage = (["Hot", "Warm", "Cold", "Nurture"] as LeadStage[]).includes(rawStage)
+    ? rawStage
+    : "Cold";
+  return {
+    id: c.id,
+    name,
+    title: c.title ?? "",
+    company: c.company ?? "",
+    companyDomain: domain,
+    score: c.lead_score,
+    signals: c.signals,
+    stage,
+    lastActivity: relTime(c.last_activity),
+  };
+}
 
 const SIGNAL_TONE: Record<SignalTone, string> = {
   intent:
