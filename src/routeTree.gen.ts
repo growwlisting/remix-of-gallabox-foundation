@@ -13,7 +13,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InviteRouteImport } from './routes/invite'
 import { Route as AppRouteImport } from './routes/_app'
-import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppWorkspacesRouteImport } from './routes/_app.workspaces'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppOutreachStudioRouteImport } from './routes/_app.outreach-studio'
@@ -46,10 +46,10 @@ const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppIndexRoute = AppIndexRouteImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppWorkspacesRoute = AppWorkspacesRouteImport.update({
   id: '/workspaces',
@@ -113,7 +113,7 @@ const AppAiCommandCenterRoute = AppAiCommandCenterRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AppIndexRoute
+  '/': typeof IndexRoute
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
@@ -131,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/workspaces': typeof AppWorkspacesRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
@@ -146,10 +147,10 @@ export interface FileRoutesByTo {
   '/outreach-studio': typeof AppOutreachStudioRoute
   '/settings': typeof AppSettingsRoute
   '/workspaces': typeof AppWorkspacesRoute
-  '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
@@ -166,7 +167,6 @@ export interface FileRoutesById {
   '/_app/outreach-studio': typeof AppOutreachStudioRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/workspaces': typeof AppWorkspacesRoute
-  '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -189,6 +189,7 @@ export interface FileRouteTypes {
     | '/workspaces'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/invite'
     | '/login'
     | '/signup'
@@ -204,9 +205,9 @@ export interface FileRouteTypes {
     | '/outreach-studio'
     | '/settings'
     | '/workspaces'
-    | '/'
   id:
     | '__root__'
+    | '/'
     | '/_app'
     | '/invite'
     | '/login'
@@ -223,10 +224,10 @@ export interface FileRouteTypes {
     | '/_app/outreach-studio'
     | '/_app/settings'
     | '/_app/workspaces'
-    | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   InviteRoute: typeof InviteRoute
   LoginRoute: typeof LoginRoute
@@ -263,12 +264,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app/': {
-      id: '/_app/'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/workspaces': {
       id: '/_app/workspaces'
@@ -370,7 +371,6 @@ interface AppRouteChildren {
   AppOutreachStudioRoute: typeof AppOutreachStudioRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppWorkspacesRoute: typeof AppWorkspacesRoute
-  AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -386,12 +386,12 @@ const AppRouteChildren: AppRouteChildren = {
   AppOutreachStudioRoute: AppOutreachStudioRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppWorkspacesRoute: AppWorkspacesRoute,
-  AppIndexRoute: AppIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   InviteRoute: InviteRoute,
   LoginRoute: LoginRoute,
