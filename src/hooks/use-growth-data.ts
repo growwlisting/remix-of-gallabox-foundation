@@ -165,13 +165,16 @@ export function useAITasks() {
 
   const queryClient = useQueryClient();
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const channelName = `ai-tasks-${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
-      .channel("ai-tasks-realtime")
+      .channel(channelName)
       .on("postgres_changes", { event: "*", schema: "public", table: "ai_tasks" }, () => {
         queryClient.invalidateQueries({ queryKey: ["ai_tasks"] });
       })
       .subscribe();
     return () => {
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
