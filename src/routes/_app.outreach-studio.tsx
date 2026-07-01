@@ -227,9 +227,11 @@ function SequenceBuilder({
 function PreviewShell({
   children,
   title = "Email preview",
+  extraActions,
 }: {
   children: React.ReactNode;
   title?: string;
+  extraActions?: React.ReactNode;
 }) {
   return (
     <section className="rounded-xl border border-border bg-card">
@@ -244,12 +246,14 @@ function PreviewShell({
             <Save className="h-4 w-4" />
             Save
           </Button>
+          {extraActions}
         </div>
       </div>
       <div className="p-5">{children}</div>
     </section>
   );
 }
+
 
 function AiToolbar({ items }: { items: string[] }) {
   return (
