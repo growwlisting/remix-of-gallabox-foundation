@@ -139,7 +139,15 @@ export function AuthShell({
       </aside>
 
       {/* Right form panel */}
-      <main className="flex items-center justify-center bg-background px-4 py-10">
+      <main className="relative flex items-center justify-center bg-background px-4 py-10">
+        <div className="absolute top-4 right-4 lg:top-6 lg:right-6">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← Back to homepage
+          </Link>
+        </div>
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="mb-8 flex items-center gap-2 lg:hidden">
