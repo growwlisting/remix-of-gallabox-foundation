@@ -135,6 +135,24 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onReject = (e: PromiseRejectionEvent) => {
+      e.preventDefault();
+      console.error("[unhandledrejection]", e.reason);
+      toast.error("Something went wrong. Please try again.");
+    };
+    window.addEventListener("unhandledrejection", onReject);
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "TOKEN_REFRESHED") console.log("[Auth] Token refreshed");
+    });
+    return () => {
+      window.removeEventListener("unhandledrejection", onReject);
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system">
