@@ -430,7 +430,23 @@ function MarketIntelligencePage() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold tracking-tight">Live Buying Signals</h2>
-            <span className="text-xs text-muted-foreground">Updated 4 min ago</span>
+            <span className="text-xs text-muted-foreground">
+              {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : "Updated 4 min ago"}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="h-7 gap-1.5 text-xs"
+            >
+              {isRefreshing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              Refresh Signals
+            </Button>
           </div>
           <div className="inline-flex h-9 items-center rounded-lg bg-muted p-1">
             {TAB_LIST.map((tab) => (
