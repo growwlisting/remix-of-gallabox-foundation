@@ -633,12 +633,12 @@ function DealDetail({
     setEditingSignal(false);
     if (aiSignal === (deal.ai_signal ?? "")) return;
     await supabase.from("deals").update({ ai_signal: aiSignal }).eq("id", deal.id);
-    queryClient.invalidateQueries({ queryKey: ["deals", profile.workspace_id] });
+    queryClient.invalidateQueries({ queryKey: ["deals", workspaceId] });
   };
 
   const changeStage = async (value: string) => {
     await supabase.from("deals").update({ stage: value }).eq("id", deal.id);
-    queryClient.invalidateQueries({ queryKey: ["deals", profile.workspace_id] });
+    queryClient.invalidateQueries({ queryKey: ["deals", workspaceId] });
     toast.success(`Stage updated to ${STAGE_LABEL[value] ?? value}`);
   };
 
