@@ -113,6 +113,7 @@ export const Route = createFileRoute("/_app/crm")({
 function CrmPage() {
   const { data: deals, isLoading } = useDeals();
   const { data: profile } = useProfile();
+  const workspaceId = profile?.workspace_id;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -122,28 +123,28 @@ function CrmPage() {
 
   useEffect(() => {
     const seedDeals = async () => {
-      if (!profile?.workspace_id) return;
+      if (!workspaceId) return;
       const { count } = await supabase
         .from("deals")
         .select("*", { count: "exact", head: true })
-        .eq("workspace_id", profile.workspace_id);
+        .eq("workspace_id", workspaceId);
       if (count && count > 0) return;
 
       const mockDeals = [
-        { company_name: "Notion Labs", value: 180000, stage: "prospecting", days_in_stage: 4, channels: ["email"], ai_signal: "↑ Opened 3 emails this week", workspace_id: profile.workspace_id },
-        { company_name: "Vercel", value: 220000, stage: "prospecting", days_in_stage: 7, channels: ["email", "linkedin"], ai_signal: "Visited pricing page twice", workspace_id: profile.workspace_id },
-        { company_name: "Retool", value: 95000, stage: "prospecting", days_in_stage: 2, channels: ["linkedin"], ai_signal: "New buying committee member", workspace_id: profile.workspace_id },
-        { company_name: "Figma", value: 310000, stage: "qualified", days_in_stage: 12, channels: ["email", "linkedin"], ai_signal: "Champion looped in CFO", workspace_id: profile.workspace_id },
-        { company_name: "Linear", value: 140000, stage: "qualified", days_in_stage: 9, channels: ["email"], ai_signal: "Requested security review", workspace_id: profile.workspace_id },
-        { company_name: "Ramp", value: 260000, stage: "proposal", days_in_stage: 18, channels: ["email"], ai_signal: "Proposal opened 5 times", workspace_id: profile.workspace_id },
-        { company_name: "Airtable", value: 175000, stage: "proposal", days_in_stage: 21, channels: ["email", "linkedin"], ai_signal: "Legal review in progress", workspace_id: profile.workspace_id },
-        { company_name: "Stripe", value: 420000, stage: "negotiation", days_in_stage: 26, channels: ["email"], ai_signal: "Redlines returned — 2 open items", workspace_id: profile.workspace_id },
-        { company_name: "Loom", value: 95000, stage: "negotiation", days_in_stage: 31, channels: ["linkedin"], ai_signal: "Champion went quiet", workspace_id: profile.workspace_id },
-        { company_name: "Intercom", value: 185000, stage: "closed_won", days_in_stage: 0, channels: ["email"], ai_signal: "Deal closed — onboarding scheduled", workspace_id: profile.workspace_id },
-        { company_name: "Amplitude", value: 230000, stage: "closed_won", days_in_stage: 0, channels: ["email", "linkedin"], ai_signal: "Expansion opportunity flagged", workspace_id: profile.workspace_id },
+        { company_name: "Notion Labs", value: 180000, stage: "prospecting", days_in_stage: 4, channels: ["email"], ai_signal: "↑ Opened 3 emails this week", workspace_id: workspaceId },
+        { company_name: "Vercel", value: 220000, stage: "prospecting", days_in_stage: 7, channels: ["email", "linkedin"], ai_signal: "Visited pricing page twice", workspace_id: workspaceId },
+        { company_name: "Retool", value: 95000, stage: "prospecting", days_in_stage: 2, channels: ["linkedin"], ai_signal: "New buying committee member", workspace_id: workspaceId },
+        { company_name: "Figma", value: 310000, stage: "qualified", days_in_stage: 12, channels: ["email", "linkedin"], ai_signal: "Champion looped in CFO", workspace_id: workspaceId },
+        { company_name: "Linear", value: 140000, stage: "qualified", days_in_stage: 9, channels: ["email"], ai_signal: "Requested security review", workspace_id: workspaceId },
+        { company_name: "Ramp", value: 260000, stage: "proposal", days_in_stage: 18, channels: ["email"], ai_signal: "Proposal opened 5 times", workspace_id: workspaceId },
+        { company_name: "Airtable", value: 175000, stage: "proposal", days_in_stage: 21, channels: ["email", "linkedin"], ai_signal: "Legal review in progress", workspace_id: workspaceId },
+        { company_name: "Stripe", value: 420000, stage: "negotiation", days_in_stage: 26, channels: ["email"], ai_signal: "Redlines returned — 2 open items", workspace_id: workspaceId },
+        { company_name: "Loom", value: 95000, stage: "negotiation", days_in_stage: 31, channels: ["linkedin"], ai_signal: "Champion went quiet", workspace_id: workspaceId },
+        { company_name: "Intercom", value: 185000, stage: "closed_won", days_in_stage: 0, channels: ["email"], ai_signal: "Deal closed — onboarding scheduled", workspace_id: workspaceId },
+        { company_name: "Amplitude", value: 230000, stage: "closed_won", days_in_stage: 0, channels: ["email", "linkedin"], ai_signal: "Expansion opportunity flagged", workspace_id: workspaceId },
       ];
       await supabase.from("deals").insert(mockDeals);
-      queryClient.invalidateQueries({ queryKey: ["deals"] });
+      queryClient.invalidateQueries({ queryKey: ["deals", workspaceId] });
     };
     seedDeals();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -185,14 +186,14 @@ function CrmPage() {
       toast.error("Company name is required");
       return;
     }
-    if (!profile?.workspace_id) {
+    if (!workspaceId) {
       toast.error("No workspace found");
       return;
     }
     const { error } = await supabase.from("deals").insert({
       company_name: form.companyName.trim(),
       contact_id: null,
-      workspace_id: profile.workspace_id,
+      workspace_id: workspaceId,
       value: form.value ? parseFloat(form.value) : null,
       stage: form.stage,
       channels: form.channels,
@@ -204,7 +205,7 @@ function CrmPage() {
       return;
     }
     toast.success("Deal added to pipeline");
-    queryClient.invalidateQueries({ queryKey: ["deals"] });
+    queryClient.invalidateQueries({ queryKey: ["deals", workspaceId] });
     setAddOpen(false);
   };
 
@@ -217,7 +218,7 @@ function CrmPage() {
       toast.error(error.message);
       return;
     }
-    queryClient.invalidateQueries({ queryKey: ["deals"] });
+    queryClient.invalidateQueries({ queryKey: ["deals", workspaceId] });
     toast.success(`Deal moved to ${STAGE_LABEL[newStage] ?? newStage}`);
     if (newStage === "closed_won") {
       setWonDealId(dealId);
@@ -433,6 +434,7 @@ function CrmPage() {
           {selectedDeal && (
             <DealDetail
               deal={selectedDeal}
+              workspaceId={workspaceId}
               onClose={() => setSelectedId(null)}
               onMove={handleMoveStage}
               navigate={navigate}
@@ -580,12 +582,14 @@ function DealCard({
 
 function DealDetail({
   deal,
+  workspaceId,
   onClose,
   onMove,
   navigate,
   queryClient,
 }: {
   deal: DealRow & { notes?: string | null };
+  workspaceId: string | null | undefined;
   onClose: () => void;
   onMove: (id: string, stage: string) => void;
   navigate: ReturnType<typeof useNavigate>;
@@ -629,12 +633,12 @@ function DealDetail({
     setEditingSignal(false);
     if (aiSignal === (deal.ai_signal ?? "")) return;
     await supabase.from("deals").update({ ai_signal: aiSignal }).eq("id", deal.id);
-    queryClient.invalidateQueries({ queryKey: ["deals"] });
+    queryClient.invalidateQueries({ queryKey: ["deals", workspaceId] });
   };
 
   const changeStage = async (value: string) => {
     await supabase.from("deals").update({ stage: value }).eq("id", deal.id);
-    queryClient.invalidateQueries({ queryKey: ["deals"] });
+    queryClient.invalidateQueries({ queryKey: ["deals", workspaceId] });
     toast.success(`Stage updated to ${STAGE_LABEL[value] ?? value}`);
   };
 
