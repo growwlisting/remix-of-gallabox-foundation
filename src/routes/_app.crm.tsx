@@ -143,7 +143,7 @@ function CrmPage() {
         { company_name: "Amplitude", value: 230000, stage: "closed_won", days_in_stage: 0, channels: ["email", "linkedin"], ai_signal: "Expansion opportunity flagged", workspace_id: profile.workspace_id },
       ];
       await supabase.from("deals").insert(mockDeals);
-      queryClient.invalidateQueries({ queryKey: ["deals"] });
+      queryClient.invalidateQueries({ queryKey: ["deals", profile.workspace_id] });
     };
     seedDeals();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -204,7 +204,7 @@ function CrmPage() {
       return;
     }
     toast.success("Deal added to pipeline");
-    queryClient.invalidateQueries({ queryKey: ["deals"] });
+    queryClient.invalidateQueries({ queryKey: ["deals", profile.workspace_id] });
     setAddOpen(false);
   };
 
@@ -217,7 +217,7 @@ function CrmPage() {
       toast.error(error.message);
       return;
     }
-    queryClient.invalidateQueries({ queryKey: ["deals"] });
+    queryClient.invalidateQueries({ queryKey: ["deals", profile.workspace_id] });
     toast.success(`Deal moved to ${STAGE_LABEL[newStage] ?? newStage}`);
     if (newStage === "closed_won") {
       setWonDealId(dealId);
@@ -629,12 +629,12 @@ function DealDetail({
     setEditingSignal(false);
     if (aiSignal === (deal.ai_signal ?? "")) return;
     await supabase.from("deals").update({ ai_signal: aiSignal }).eq("id", deal.id);
-    queryClient.invalidateQueries({ queryKey: ["deals"] });
+    queryClient.invalidateQueries({ queryKey: ["deals", profile.workspace_id] });
   };
 
   const changeStage = async (value: string) => {
     await supabase.from("deals").update({ stage: value }).eq("id", deal.id);
-    queryClient.invalidateQueries({ queryKey: ["deals"] });
+    queryClient.invalidateQueries({ queryKey: ["deals", profile.workspace_id] });
     toast.success(`Stage updated to ${STAGE_LABEL[value] ?? value}`);
   };
 
