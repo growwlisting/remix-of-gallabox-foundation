@@ -90,7 +90,15 @@ const WORKFLOWS: WorkflowCard[] = [
   },
 ];
 
-function ActiveWorkflowCard({ workflow }: { workflow: WorkflowCard }) {
+function ActiveWorkflowCard({
+  workflow,
+  onRun,
+  isRunning,
+}: {
+  workflow: WorkflowCard;
+  onRun: (name: string) => void;
+  isRunning: boolean;
+}) {
   return (
     <Card className="card-hover">
       <CardContent className="p-5">
@@ -132,8 +140,18 @@ function ActiveWorkflowCard({ workflow }: { workflow: WorkflowCard }) {
             <Pause className="h-3.5 w-3.5" />
             Pause
           </Button>
-          <Button size="sm" variant="ghost" className="h-8 gap-1.5 text-xs">
-            <Play className="h-3.5 w-3.5" />
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={isRunning}
+            onClick={() => onRun(workflow.name)}
+            className="h-8 gap-1.5 text-xs"
+          >
+            {isRunning ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Play className="h-3.5 w-3.5" />
+            )}
             Run Now
           </Button>
         </div>
@@ -141,6 +159,7 @@ function ActiveWorkflowCard({ workflow }: { workflow: WorkflowCard }) {
     </Card>
   );
 }
+
 
 /* ------------------------------------------------------------------ */
 /*  Workflow Builder — visual node flow                                 */
