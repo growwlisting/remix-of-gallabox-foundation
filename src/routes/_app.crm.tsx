@@ -218,7 +218,7 @@ function CrmPage() {
       toast.error(error.message);
       return;
     }
-    queryClient.invalidateQueries({ queryKey: ["deals", profile.workspace_id] });
+    queryClient.invalidateQueries({ queryKey: ["deals", workspaceId] });
     toast.success(`Deal moved to ${STAGE_LABEL[newStage] ?? newStage}`);
     if (newStage === "closed_won") {
       setWonDealId(dealId);
