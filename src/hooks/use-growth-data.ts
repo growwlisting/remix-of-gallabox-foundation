@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/use-auth";
 
 export type DealRow = {
   id: string;
@@ -52,12 +53,17 @@ export type AITaskRow = {
 };
 
 export function useDeals() {
+  const { data: profile } = useProfile();
+  const workspaceId = profile?.workspace_id;
+
   const query = useQuery({
-    queryKey: ["deals"],
+    queryKey: ["deals", workspaceId],
+    enabled: !!workspaceId,
     queryFn: async (): Promise<DealRow[]> => {
       const { data, error } = await supabase
         .from("deals")
         .select("id, company_name, value, stage, days_in_stage, ai_signal, channels")
+        .eq("workspace_id", workspaceId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
       return (data ?? []) as DealRow[];
@@ -66,30 +72,35 @@ export function useDeals() {
 
   const queryClient = useQueryClient();
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !workspaceId) return;
     const channelName = `deals-${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
       .channel(channelName)
       .on("postgres_changes", { event: "*", schema: "public", table: "deals" }, () => {
-        queryClient.invalidateQueries({ queryKey: ["deals"] });
+        queryClient.invalidateQueries({ queryKey: ["deals", workspaceId] });
       })
       .subscribe();
     return () => {
       channel.unsubscribe();
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, workspaceId]);
 
   return query;
 }
 
 export function useCampaigns() {
+  const { data: profile } = useProfile();
+  const workspaceId = profile?.workspace_id;
+
   const query = useQuery({
-    queryKey: ["campaigns"],
+    queryKey: ["campaigns", workspaceId],
+    enabled: !!workspaceId,
     queryFn: async (): Promise<CampaignRow[]> => {
       const { data, error } = await supabase
         .from("campaigns")
         .select("*")
+        .eq("workspace_id", workspaceId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as CampaignRow[];
@@ -98,30 +109,35 @@ export function useCampaigns() {
 
   const queryClient = useQueryClient();
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !workspaceId) return;
     const channelName = `campaigns-${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
       .channel(channelName)
       .on("postgres_changes", { event: "*", schema: "public", table: "campaigns" }, () => {
-        queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+        queryClient.invalidateQueries({ queryKey: ["campaigns", workspaceId] });
       })
       .subscribe();
     return () => {
       channel.unsubscribe();
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, workspaceId]);
 
   return query;
 }
 
 export function useContacts() {
+  const { data: profile } = useProfile();
+  const workspaceId = profile?.workspace_id;
+
   const query = useQuery({
-    queryKey: ["contacts"],
+    queryKey: ["contacts", workspaceId],
+    enabled: !!workspaceId,
     queryFn: async (): Promise<ContactRow[]> => {
       const { data, error } = await supabase
         .from("contacts")
         .select("*")
+        .eq("workspace_id", workspaceId!)
         .order("lead_score", { ascending: false });
       if (error) throw error;
       return (data ?? []).map((c) => ({
@@ -133,30 +149,35 @@ export function useContacts() {
 
   const queryClient = useQueryClient();
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !workspaceId) return;
     const channelName = `contacts-${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
       .channel(channelName)
       .on("postgres_changes", { event: "*", schema: "public", table: "contacts" }, () => {
-        queryClient.invalidateQueries({ queryKey: ["contacts"] });
+        queryClient.invalidateQueries({ queryKey: ["contacts", workspaceId] });
       })
       .subscribe();
     return () => {
       channel.unsubscribe();
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, workspaceId]);
 
   return query;
 }
 
 export function useAITasks() {
+  const { data: profile } = useProfile();
+  const workspaceId = profile?.workspace_id;
+
   const query = useQuery({
-    queryKey: ["ai_tasks"],
+    queryKey: ["ai_tasks", workspaceId],
+    enabled: !!workspaceId,
     queryFn: async (): Promise<AITaskRow[]> => {
       const { data, error } = await supabase
         .from("ai_tasks")
         .select("*")
+        .eq("workspace_id", workspaceId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as AITaskRow[];
@@ -165,19 +186,19 @@ export function useAITasks() {
 
   const queryClient = useQueryClient();
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !workspaceId) return;
     const channelName = `ai-tasks-${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
       .channel(channelName)
       .on("postgres_changes", { event: "*", schema: "public", table: "ai_tasks" }, () => {
-        queryClient.invalidateQueries({ queryKey: ["ai_tasks"] });
+        queryClient.invalidateQueries({ queryKey: ["ai_tasks", workspaceId] });
       })
       .subscribe();
     return () => {
       channel.unsubscribe();
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, workspaceId]);
 
   return query;
 }
