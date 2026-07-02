@@ -186,14 +186,14 @@ function CrmPage() {
       toast.error("Company name is required");
       return;
     }
-    if (!profile?.workspace_id) {
+    if (!workspaceId) {
       toast.error("No workspace found");
       return;
     }
     const { error } = await supabase.from("deals").insert({
       company_name: form.companyName.trim(),
       contact_id: null,
-      workspace_id: profile.workspace_id,
+      workspace_id: workspaceId,
       value: form.value ? parseFloat(form.value) : null,
       stage: form.stage,
       channels: form.channels,
@@ -205,7 +205,7 @@ function CrmPage() {
       return;
     }
     toast.success("Deal added to pipeline");
-    queryClient.invalidateQueries({ queryKey: ["deals", profile.workspace_id] });
+    queryClient.invalidateQueries({ queryKey: ["deals", workspaceId] });
     setAddOpen(false);
   };
 
