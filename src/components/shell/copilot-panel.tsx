@@ -289,9 +289,9 @@ function CopilotBody() {
             onClick={handleSend}
             disabled={!inputValue.trim() || isLoading}
             aria-label="Send message"
-            className="grid h-7 w-7 place-items-center rounded-md bg-indigo-600 text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="grid h-7 w-7 place-items-center rounded-full bg-indigo-600 text-white transition-opacity hover:opacity-90 disabled:opacity-40"
           >
-            {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+            {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ArrowUp className="h-3.5 w-3.5" />}
           </button>
         </div>
         <p className="mt-2 text-center text-[10px] text-muted-foreground">
