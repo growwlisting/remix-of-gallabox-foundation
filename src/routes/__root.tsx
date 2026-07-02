@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "../lib/theme-provider";
 import { Toaster } from "../components/ui/sonner";
+import { toast } from "sonner";
+import { supabase } from "../integrations/supabase/client";
 
 const themeInitScript = `(() => {
   try {
