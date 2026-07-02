@@ -296,18 +296,20 @@ function LandingPage() {
                   </button>
                 ) : (
                   <>
-                    <button
-                      onClick={goLogin}
-                      className="flex-1 rounded-lg border border-border px-4 py-2 text-sm text-foreground"
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex-1 rounded-lg border border-border px-4 py-2 text-sm text-foreground text-center"
                     >
                       Sign In
-                    </button>
-                    <button
-                      onClick={goSignup}
-                      className="brand-gradient flex-1 rounded-lg px-4 py-2 text-sm font-semibold text-primary-foreground"
+                    </Link>
+                    <Link
+                      to="/signup"
+                      onClick={() => setMobileOpen(false)}
+                      className="brand-gradient flex-1 rounded-lg px-4 py-2 text-sm font-semibold text-primary-foreground text-center"
                     >
                       Start Trial
-                    </button>
+                    </Link>
                   </>
                 )}
               </div>
