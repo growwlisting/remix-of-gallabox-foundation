@@ -337,7 +337,15 @@ const TEMPLATES: TemplateCard[] = [
   },
 ];
 
-function TemplateCardComponent({ template }: { template: TemplateCard }) {
+function TemplateCardComponent({
+  template,
+  onUse,
+  isRunning,
+}: {
+  template: TemplateCard;
+  onUse: (name: string) => void;
+  isRunning: boolean;
+}) {
   const Icon = template.icon;
   return (
     <Card className="card-hover">
@@ -356,8 +364,18 @@ function TemplateCardComponent({ template }: { template: TemplateCard }) {
             <ListChecks className="mr-1 h-3 w-3" />
             {template.steps} steps
           </Badge>
-          <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300">
-            <Plus className="h-3.5 w-3.5" />
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={isRunning}
+            onClick={() => onUse(template.name)}
+            className="h-7 gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+          >
+            {isRunning ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Plus className="h-3.5 w-3.5" />
+            )}
             Use Template
           </Button>
         </div>
@@ -371,6 +389,50 @@ function TemplateCardComponent({ template }: { template: TemplateCard }) {
 /* ------------------------------------------------------------------ */
 
 function AutomationStudioPage() {
+  const { data: profile } = useProfile();
+  const { data: tasks = [] } = useAITasks();
+  const [runningWorkflow, setRunningWorkflow] = useState<string | null>(null);
+
+  const workflowLog = tasks
+    .filter((t) => t.agent_name === "Workflow Builder")
+    .slice(0, 5);
+
+  const handleRunWorkflow = async (workflowName: string) => {
+    setRunningWorkflow(workflowName);
+    const { data } = await supabase.functions.invoke("trigger-workflow", {
+      body: {
+        workflowName,
+        payload: { source: "GrowthOS", workspace: profile?.workspace_id },
+      },
+    });
+    if (data?.ok) toast.success(`${workflowName} triggered successfully`);
+    else toast.error("Workflow failed — add N8N_WEBHOOK_BASE_URL to secrets");
+    setRunningWorkflow(null);
+  };
+
+  const handleUseTemplate = async (templateName: string) => {
+    if (!profile?.workspace_id) {
+      toast.error("No workspace found");
+      return;
+    }
+    setRunningWorkflow(templateName);
+    await supabase.from("ai_tasks").insert({
+      workspace_id: profile.workspace_id,
+      agent_name: "Workflow Builder",
+      task_description: templateName,
+      status: "queued",
+    });
+    const { data } = await supabase.functions.invoke("trigger-workflow", {
+      body: {
+        workflowName: templateName,
+        payload: { source: "GrowthOS", template: true, workspace: profile.workspace_id },
+      },
+    });
+    if (data?.ok) toast.success("Template workflow queued");
+    else toast.error("Workflow queued locally — add N8N_WEBHOOK_BASE_URL to trigger");
+    setRunningWorkflow(null);
+  };
+
   return (
     <div className="space-y-10">
       {/* Header */}
