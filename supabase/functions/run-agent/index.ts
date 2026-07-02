@@ -28,6 +28,16 @@ const AGENT_PROMPTS: Record<string, string> = {
     "Design an automation workflow for the described goal. Output: trigger, steps, conditions, actions.",
   "Memory Manager":
     "Synthesize workspace context into key facts. Output: ICP summary, top signals, active campaigns.",
+  "Persona Builder":
+    "Map B2B buyer personas with specific job titles, daily pains, success metrics, objections, and messaging angles. Output 2 detailed personas.",
+  "Website Analyzer":
+    "Analyze a company website and extract: core value prop, target customer, pricing signals, tech stack indicators, and 3 outreach angles.",
+  "WhatsApp Agent":
+    "Write a compliant WhatsApp outreach message under 160 characters. Reference a specific buying signal. Include a soft CTA. No links in first message.",
+  "LinkedIn Agent":
+    "Write a LinkedIn connection request note under 300 characters and a follow-up DM for if they accept. Signal-led, no pitch in first touch.",
+  "Meeting Coach":
+    "Prepare a pre-call brief for a B2B discovery call. Output: company summary, 3 discovery questions, likely objections, talk track opener, and success criteria.",
 };
 
 serve(async (req) => {
