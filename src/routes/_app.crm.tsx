@@ -582,12 +582,14 @@ function DealCard({
 
 function DealDetail({
   deal,
+  workspaceId,
   onClose,
   onMove,
   navigate,
   queryClient,
 }: {
   deal: DealRow & { notes?: string | null };
+  workspaceId: string | null | undefined;
   onClose: () => void;
   onMove: (id: string, stage: string) => void;
   navigate: ReturnType<typeof useNavigate>;
