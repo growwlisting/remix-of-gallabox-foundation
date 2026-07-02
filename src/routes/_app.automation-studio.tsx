@@ -461,7 +461,12 @@ function AutomationStudioPage() {
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {WORKFLOWS.map((w) => (
-            <ActiveWorkflowCard key={w.id} workflow={w} />
+            <ActiveWorkflowCard
+              key={w.id}
+              workflow={w}
+              onRun={handleRunWorkflow}
+              isRunning={runningWorkflow === w.name}
+            />
           ))}
         </div>
       </section>
@@ -575,9 +580,69 @@ function AutomationStudioPage() {
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {TEMPLATES.map((t) => (
-            <TemplateCardComponent key={t.id} template={t} />
+            <TemplateCardComponent
+              key={t.id}
+              template={t}
+              onUse={handleUseTemplate}
+              isRunning={runningWorkflow === t.name}
+            />
           ))}
         </div>
+      </section>
+
+      {/* Section 4 — Webhook Activity Log */}
+      <section>
+        <h2 className="text-lg font-semibold tracking-tight text-foreground">
+          Webhook Activity Log
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Recent workflow triggers across your workspace.
+        </p>
+        <Card className="mt-4">
+          <CardContent className="p-0">
+            {workflowLog.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 p-8 text-center">
+                <Activity className="h-6 w-6 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  No workflow activity yet. Trigger a template or workflow to see it here.
+                </p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {workflowLog.map((task) => (
+                  <li key={task.id} className="flex items-center justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {task.task_description}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {task.created_at
+                          ? new Date(task.created_at).toLocaleString()
+                          : "—"}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[10px] capitalize",
+                        task.status === "completed" &&
+                          "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+                        task.status === "running" &&
+                          "border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300",
+                        task.status === "queued" &&
+                          "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+                        task.status === "failed" &&
+                          "border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-300",
+                      )}
+                    >
+                      {task.status}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
