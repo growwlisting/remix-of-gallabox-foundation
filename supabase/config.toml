@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.send-email]
 verify_jwt = false
+
+[functions.fetch-signals]
+verify_jwt = false
+
+[functions.trigger-workflow]
+verify_jwt = false
