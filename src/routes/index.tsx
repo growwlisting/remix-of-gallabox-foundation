@@ -245,18 +245,18 @@ function LandingPage() {
               </button>
             ) : (
               <>
-                <button
-                  onClick={goLogin}
+                <Link
+                  to="/login"
                   className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
                   Sign In
-                </button>
-                <button
-                  onClick={goSignup}
+                </Link>
+                <Link
+                  to="/signup"
                   className="brand-gradient rounded-lg px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-soft)] transition-transform hover:scale-[1.02]"
                 >
                   Start Free Trial
-                </button>
+                </Link>
               </>
             )}
           </div>
