@@ -9,6 +9,7 @@ import {
   TrendingUp,
   CheckCircle2,
   Send,
+  ArrowUp,
   type LucideIcon,
 } from "lucide-react";
 import { useRouterState } from "@tanstack/react-router";
