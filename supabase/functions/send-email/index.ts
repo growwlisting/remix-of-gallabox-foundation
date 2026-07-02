@@ -29,7 +29,7 @@ serve(async (req) => {
       body: JSON.stringify({
         personalizations: [{ to: [{ email: to }] }],
         from: {
-          email: fromEmail ?? "outreach@yourdomain.com",
+          email: fromEmail ?? "jaideep1428@gmail.com",
           name: fromName ?? "GrowthOS",
         },
         subject,
