@@ -434,6 +434,7 @@ function CrmPage() {
           {selectedDeal && (
             <DealDetail
               deal={selectedDeal}
+              workspaceId={workspaceId}
               onClose={() => setSelectedId(null)}
               onMove={handleMoveStage}
               navigate={navigate}
