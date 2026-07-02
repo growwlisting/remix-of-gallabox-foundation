@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   Plus,
   Pause,
@@ -15,6 +17,8 @@ import {
   AlertTriangle,
   MessageSquare,
   Link2,
+  Loader2,
+  Activity,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/states/page-header";
@@ -25,6 +29,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getRouteMeta } from "@/lib/route-meta";
 import { withLoading } from "@/components/states/page-skeleton";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/use-auth";
+import { useAITasks } from "@/hooks/use-growth-data";
+
 
 const meta = getRouteMeta("/automation-studio")!;
 
