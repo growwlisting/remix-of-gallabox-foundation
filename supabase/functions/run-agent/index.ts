@@ -17,7 +17,7 @@ const AGENT_PROMPTS: Record<string, string> = {
   "Outreach Writer":
     "Write a signal-led cold email under 100 words. Include a specific buying signal. No fluff.",
   "Lead Scoring":
-    "Score a lead 0-100 against an ICP. Output score, reasoning, and recommended action.",
+    "Score a B2B lead 0-100 against an ideal customer profile. Output: score, fit breakdown (industry/size/title/signals), and recommended action (outreach/nurture/disqualify).",
   "Buying Signals":
     "Monitor and report buying signals: hiring patterns, funding events, tech stack changes, intent.",
   "Campaign Builder":
