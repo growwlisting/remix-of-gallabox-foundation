@@ -170,6 +170,7 @@ export type Database = {
           created_at: string
           days_in_stage: number
           id: string
+          notes: string | null
           stage: string
           value: number | null
           workspace_id: string
@@ -182,6 +183,7 @@ export type Database = {
           created_at?: string
           days_in_stage?: number
           id?: string
+          notes?: string | null
           stage?: string
           value?: number | null
           workspace_id: string
@@ -194,6 +196,7 @@ export type Database = {
           created_at?: string
           days_in_stage?: number
           id?: string
+          notes?: string | null
           stage?: string
           value?: number | null
           workspace_id?: string
