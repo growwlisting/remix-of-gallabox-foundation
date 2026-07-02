@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "../lib/theme-provider";
 import { Toaster } from "../components/ui/sonner";
+import { toast } from "sonner";
+import { supabase } from "../integrations/supabase/client";
 
 const themeInitScript = `(() => {
   try {
@@ -104,6 +106,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "preconnect", href: "https://rsms.me" },
       { rel: "stylesheet", href: "https://rsms.me/inter/inter.css" },
     ],
@@ -131,6 +134,24 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onReject = (e: PromiseRejectionEvent) => {
+      e.preventDefault();
+      console.error("[unhandledrejection]", e.reason);
+      toast.error("Something went wrong. Please try again.");
+    };
+    window.addEventListener("unhandledrejection", onReject);
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "TOKEN_REFRESHED") console.log("[Auth] Token refreshed");
+    });
+    return () => {
+      window.removeEventListener("unhandledrejection", onReject);
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
 
   return (
     <QueryClientProvider client={queryClient}>
