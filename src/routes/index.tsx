@@ -344,12 +344,12 @@ function LandingPage() {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <button
-                onClick={goSignup}
+              <Link
+                to="/signup"
                 className="brand-gradient ai-glow inline-flex items-center gap-2 rounded-xl px-6 py-3.5 text-base font-semibold text-primary-foreground transition-transform hover:scale-[1.02]"
               >
                 Start Free Trial <ArrowRight className="h-4 w-4" />
-              </button>
+              </Link>
               <button className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-base font-medium text-foreground hover:bg-accent">
                 <Play className="h-4 w-4" /> Watch Demo
               </button>
