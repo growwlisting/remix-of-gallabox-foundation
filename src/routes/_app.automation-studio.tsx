@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   Plus,
   Pause,
@@ -15,6 +17,8 @@ import {
   AlertTriangle,
   MessageSquare,
   Link2,
+  Loader2,
+  Activity,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/states/page-header";
@@ -25,6 +29,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getRouteMeta } from "@/lib/route-meta";
 import { withLoading } from "@/components/states/page-skeleton";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/use-auth";
+import { useAITasks } from "@/hooks/use-growth-data";
+
 
 const meta = getRouteMeta("/automation-studio")!;
 
@@ -82,7 +90,15 @@ const WORKFLOWS: WorkflowCard[] = [
   },
 ];
 
-function ActiveWorkflowCard({ workflow }: { workflow: WorkflowCard }) {
+function ActiveWorkflowCard({
+  workflow,
+  onRun,
+  isRunning,
+}: {
+  workflow: WorkflowCard;
+  onRun: (name: string) => void;
+  isRunning: boolean;
+}) {
   return (
     <Card className="card-hover">
       <CardContent className="p-5">
@@ -124,8 +140,18 @@ function ActiveWorkflowCard({ workflow }: { workflow: WorkflowCard }) {
             <Pause className="h-3.5 w-3.5" />
             Pause
           </Button>
-          <Button size="sm" variant="ghost" className="h-8 gap-1.5 text-xs">
-            <Play className="h-3.5 w-3.5" />
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={isRunning}
+            onClick={() => onRun(workflow.name)}
+            className="h-8 gap-1.5 text-xs"
+          >
+            {isRunning ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Play className="h-3.5 w-3.5" />
+            )}
             Run Now
           </Button>
         </div>
@@ -133,6 +159,7 @@ function ActiveWorkflowCard({ workflow }: { workflow: WorkflowCard }) {
     </Card>
   );
 }
+
 
 /* ------------------------------------------------------------------ */
 /*  Workflow Builder — visual node flow                                 */
@@ -310,7 +337,15 @@ const TEMPLATES: TemplateCard[] = [
   },
 ];
 
-function TemplateCardComponent({ template }: { template: TemplateCard }) {
+function TemplateCardComponent({
+  template,
+  onUse,
+  isRunning,
+}: {
+  template: TemplateCard;
+  onUse: (name: string) => void;
+  isRunning: boolean;
+}) {
   const Icon = template.icon;
   return (
     <Card className="card-hover">
@@ -329,8 +364,18 @@ function TemplateCardComponent({ template }: { template: TemplateCard }) {
             <ListChecks className="mr-1 h-3 w-3" />
             {template.steps} steps
           </Badge>
-          <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300">
-            <Plus className="h-3.5 w-3.5" />
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={isRunning}
+            onClick={() => onUse(template.name)}
+            className="h-7 gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+          >
+            {isRunning ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Plus className="h-3.5 w-3.5" />
+            )}
             Use Template
           </Button>
         </div>
@@ -344,6 +389,50 @@ function TemplateCardComponent({ template }: { template: TemplateCard }) {
 /* ------------------------------------------------------------------ */
 
 function AutomationStudioPage() {
+  const { data: profile } = useProfile();
+  const { data: tasks = [] } = useAITasks();
+  const [runningWorkflow, setRunningWorkflow] = useState<string | null>(null);
+
+  const workflowLog = tasks
+    .filter((t) => t.agent_name === "Workflow Builder")
+    .slice(0, 5);
+
+  const handleRunWorkflow = async (workflowName: string) => {
+    setRunningWorkflow(workflowName);
+    const { data } = await supabase.functions.invoke("trigger-workflow", {
+      body: {
+        workflowName,
+        payload: { source: "GrowthOS", workspace: profile?.workspace_id },
+      },
+    });
+    if (data?.ok) toast.success(`${workflowName} triggered successfully`);
+    else toast.error("Workflow failed — add N8N_WEBHOOK_BASE_URL to secrets");
+    setRunningWorkflow(null);
+  };
+
+  const handleUseTemplate = async (templateName: string) => {
+    if (!profile?.workspace_id) {
+      toast.error("No workspace found");
+      return;
+    }
+    setRunningWorkflow(templateName);
+    await supabase.from("ai_tasks").insert({
+      workspace_id: profile.workspace_id,
+      agent_name: "Workflow Builder",
+      task_description: templateName,
+      status: "queued",
+    });
+    const { data } = await supabase.functions.invoke("trigger-workflow", {
+      body: {
+        workflowName: templateName,
+        payload: { source: "GrowthOS", template: true, workspace: profile.workspace_id },
+      },
+    });
+    if (data?.ok) toast.success("Template workflow queued");
+    else toast.error("Workflow queued locally — add N8N_WEBHOOK_BASE_URL to trigger");
+    setRunningWorkflow(null);
+  };
+
   return (
     <div className="space-y-10">
       {/* Header */}
@@ -372,7 +461,12 @@ function AutomationStudioPage() {
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {WORKFLOWS.map((w) => (
-            <ActiveWorkflowCard key={w.id} workflow={w} />
+            <ActiveWorkflowCard
+              key={w.id}
+              workflow={w}
+              onRun={handleRunWorkflow}
+              isRunning={runningWorkflow === w.name}
+            />
           ))}
         </div>
       </section>
@@ -486,9 +580,69 @@ function AutomationStudioPage() {
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {TEMPLATES.map((t) => (
-            <TemplateCardComponent key={t.id} template={t} />
+            <TemplateCardComponent
+              key={t.id}
+              template={t}
+              onUse={handleUseTemplate}
+              isRunning={runningWorkflow === t.name}
+            />
           ))}
         </div>
+      </section>
+
+      {/* Section 4 — Webhook Activity Log */}
+      <section>
+        <h2 className="text-lg font-semibold tracking-tight text-foreground">
+          Webhook Activity Log
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Recent workflow triggers across your workspace.
+        </p>
+        <Card className="mt-4">
+          <CardContent className="p-0">
+            {workflowLog.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 p-8 text-center">
+                <Activity className="h-6 w-6 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  No workflow activity yet. Trigger a template or workflow to see it here.
+                </p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {workflowLog.map((task) => (
+                  <li key={task.id} className="flex items-center justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {task.task_description}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {task.created_at
+                          ? new Date(task.created_at).toLocaleString()
+                          : "—"}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[10px] capitalize",
+                        task.status === "completed" &&
+                          "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+                        task.status === "running" &&
+                          "border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300",
+                        task.status === "queued" &&
+                          "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+                        task.status === "failed" &&
+                          "border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-300",
+                      )}
+                    >
+                      {task.status}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </section>
     </div>
   );

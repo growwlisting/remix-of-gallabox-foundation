@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   Bar,
   BarChart,
@@ -25,6 +26,8 @@ import {
   SearchCheck,
   Eye,
   Send,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/states/page-header";
@@ -42,6 +45,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/use-auth";
+
 
 const meta = getRouteMeta("/market-intelligence")!;
 
@@ -230,11 +236,42 @@ export const Route = createFileRoute("/_app/market-intelligence")({
 
 function MarketIntelligencePage() {
   const [activeTab, setActiveTab] = useState<TabKey>("All");
+  const { data: profile } = useProfile();
+  const [liveSignals, setLiveSignals] = useState<typeof SIGNAL_ROWS>(SIGNAL_ROWS);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    const { data } = await supabase.functions.invoke("fetch-signals", {
+      body: {
+        query: ["SaaS", "revenue", "B2B sales"],
+        workspaceId: profile?.workspace_id,
+      },
+    });
+    if (data?.signals?.length) {
+      const mapped = data.signals.map((s: any) => ({
+        company: s.company,
+        signal: s.signal,
+        type: s.type ?? "Intent",
+        strength: s.strength ?? "Medium",
+        detected: "just now",
+        action: s.action ?? "Outreach",
+      }));
+      setLiveSignals(mapped);
+      setLastUpdated(new Date());
+      toast.success(`${data.signals.length} live signals refreshed from Apollo`);
+    } else {
+      toast.error("Apollo fetch failed — add APOLLO_API_KEY to secrets");
+    }
+    setIsRefreshing(false);
+  };
 
   const filteredSignals =
     activeTab === "All"
-      ? SIGNAL_ROWS
-      : SIGNAL_ROWS.filter((s) => s.type === activeTab || (activeTab === "Tech Stack" && s.type === "Tech Stack"));
+      ? liveSignals
+      : liveSignals.filter((s) => s.type === activeTab);
+
 
   return (
     <>
@@ -393,7 +430,23 @@ function MarketIntelligencePage() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold tracking-tight">Live Buying Signals</h2>
-            <span className="text-xs text-muted-foreground">Updated 4 min ago</span>
+            <span className="text-xs text-muted-foreground">
+              {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : "Updated 4 min ago"}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="h-7 gap-1.5 text-xs"
+            >
+              {isRefreshing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              Refresh Signals
+            </Button>
           </div>
           <div className="inline-flex h-9 items-center rounded-lg bg-muted p-1">
             {TAB_LIST.map((tab) => (
