@@ -120,6 +120,36 @@ function CrmPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [wonDealId, setWonDealId] = useState<string | null>(null);
 
+  useEffect(() => {
+    const seedDeals = async () => {
+      if (!profile?.workspace_id) return;
+      const { count } = await supabase
+        .from("deals")
+        .select("*", { count: "exact", head: true })
+        .eq("workspace_id", profile.workspace_id);
+      if (count && count > 0) return;
+
+      const mockDeals = [
+        { company_name: "Notion Labs", value: 180000, stage: "prospecting", days_in_stage: 4, channels: ["email"], ai_signal: "↑ Opened 3 emails this week", workspace_id: profile.workspace_id },
+        { company_name: "Vercel", value: 220000, stage: "prospecting", days_in_stage: 7, channels: ["email", "linkedin"], ai_signal: "Visited pricing page twice", workspace_id: profile.workspace_id },
+        { company_name: "Retool", value: 95000, stage: "prospecting", days_in_stage: 2, channels: ["linkedin"], ai_signal: "New buying committee member", workspace_id: profile.workspace_id },
+        { company_name: "Figma", value: 310000, stage: "qualified", days_in_stage: 12, channels: ["email", "linkedin"], ai_signal: "Champion looped in CFO", workspace_id: profile.workspace_id },
+        { company_name: "Linear", value: 140000, stage: "qualified", days_in_stage: 9, channels: ["email"], ai_signal: "Requested security review", workspace_id: profile.workspace_id },
+        { company_name: "Ramp", value: 260000, stage: "proposal", days_in_stage: 18, channels: ["email"], ai_signal: "Proposal opened 5 times", workspace_id: profile.workspace_id },
+        { company_name: "Airtable", value: 175000, stage: "proposal", days_in_stage: 21, channels: ["email", "linkedin"], ai_signal: "Legal review in progress", workspace_id: profile.workspace_id },
+        { company_name: "Stripe", value: 420000, stage: "negotiation", days_in_stage: 26, channels: ["email"], ai_signal: "Redlines returned — 2 open items", workspace_id: profile.workspace_id },
+        { company_name: "Loom", value: 95000, stage: "negotiation", days_in_stage: 31, channels: ["linkedin"], ai_signal: "Champion went quiet", workspace_id: profile.workspace_id },
+        { company_name: "Intercom", value: 185000, stage: "closed_won", days_in_stage: 0, channels: ["email"], ai_signal: "Deal closed — onboarding scheduled", workspace_id: profile.workspace_id },
+        { company_name: "Amplitude", value: 230000, stage: "closed_won", days_in_stage: 0, channels: ["email", "linkedin"], ai_signal: "Expansion opportunity flagged", workspace_id: profile.workspace_id },
+      ];
+      await supabase.from("deals").insert(mockDeals);
+      queryClient.invalidateQueries({ queryKey: ["deals"] });
+    };
+    seedDeals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.workspace_id]);
+
+
   // Add-deal dialog
   const [addOpen, setAddOpen] = useState(false);
   const [addStage, setAddStage] = useState<string>("prospecting");
