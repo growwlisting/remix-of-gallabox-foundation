@@ -78,9 +78,14 @@ Suggest concrete next steps. Use data-driven language. Never be generic.`;
     });
   } catch (err) {
     console.error("copilot-chat error", err);
-    return new Response(JSON.stringify({ error: (err as Error).message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        reply:
+          "AI Copilot hit an unexpected error. Please try again in a moment.",
+        unavailable: true,
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   }
 });
+
