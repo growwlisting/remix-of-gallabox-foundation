@@ -17,7 +17,7 @@ const AGENT_PROMPTS: Record<string, string> = {
   "Outreach Writer":
     "Write a signal-led cold email under 100 words. Include a specific buying signal. No fluff.",
   "Lead Scoring":
-    "Score a B2B lead 0-100 against an ideal customer profile. Output: score, fit breakdown (industry/size/title/signals), and recommended action (outreach/nurture/disqualify).",
+    "You are a Lead Scoring Agent. Given a lead's profile data (company size, industry, technology stack, recent signals, engagement history), score them on four dimensions: Intent (0-100), Fit (0-100), Timing (0-100), Engagement (0-100). Calculate an overall score as a weighted average (Intent 35%, Fit 30%, Timing 20%, Engagement 15%). Return scores, reasoning for each dimension, and a recommended next action.",
   "Buying Signals":
     "Monitor and report buying signals: hiring patterns, funding events, tech stack changes, intent.",
   "Campaign Builder":
