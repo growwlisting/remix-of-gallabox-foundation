@@ -87,15 +87,15 @@ function CopilotBody() {
           history,
         },
       });
-      const reply =
-        (data as { reply?: string } | null)?.reply ??
-        (error ? `Error: ${error.message}` : "I could not process that request.");
+      const payload = data as { reply?: string; error?: string } | null;
+      const reply = error
+        ? COPILOT_ERROR_MESSAGE
+        : payload?.error
+          ? COPILOT_ERROR_MESSAGE
+          : payload?.reply ?? "I could not process that request.";
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: `Error: ${(err as Error).message}` },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", content: COPILOT_ERROR_MESSAGE }]);
     } finally {
       setIsLoading(false);
     }
