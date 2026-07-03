@@ -39,6 +39,9 @@ const INSIGHTS: Array<{ icon: LucideIcon; title: string; body: string }> = [
 
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
+const COPILOT_ERROR_MESSAGE =
+  "AI Copilot requires an OpenAI API key to be configured. Please add your OPENAI_API_KEY in Supabase Edge Function secrets.";
+
 function TypingDots() {
   return (
     <span className="inline-flex items-center gap-1">
