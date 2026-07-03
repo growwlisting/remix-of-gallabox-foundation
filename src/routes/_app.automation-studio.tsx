@@ -399,23 +399,41 @@ function AutomationStudioPage() {
   const { data: profile } = useProfile();
   const { data: tasks = [] } = useAITasks();
   const [runningWorkflow, setRunningWorkflow] = useState<string | null>(null);
+  const [lastRuns, setLastRuns] = useState<Record<string, string>>({});
 
   const workflowLog = tasks
     .filter((t) => t.agent_name === "Workflow Builder")
     .slice(0, 5);
 
-  const handleRunWorkflow = async (workflowName: string) => {
-    setRunningWorkflow(workflowName);
-    const { data } = await supabase.functions.invoke("trigger-workflow", {
-      body: {
-        workflowName,
-        payload: { source: "GrowthOS", workspace: profile?.workspace_id },
-      },
-    });
-    if (data?.ok) toast.success(`${workflowName} triggered successfully`);
-    else toast.error("Workflow failed — add N8N_WEBHOOK_BASE_URL to secrets");
-    setRunningWorkflow(null);
+  const handleRunWorkflow = async (workflow: WorkflowCard) => {
+    setRunningWorkflow(workflow.name);
+    // Optimistic "Last run"
+    setLastRuns((prev) => ({ ...prev, [workflow.id]: "just now" }));
+    try {
+      const { data, error } = await supabase.functions.invoke("trigger-workflow", {
+        body: {
+          workflowId: workflow.id,
+          workflowName: workflow.name,
+          workspaceId: profile?.workspace_id,
+        },
+      });
+      if (error) throw error;
+      if (data?.status === "triggered") {
+        toast.success("Workflow triggered successfully");
+      } else {
+        toast(`${workflow.name} queued`, {
+          description: "Workflow queued — configure n8n webhook to activate",
+        });
+      }
+    } catch (e) {
+      toast.error("Workflow queued — configure n8n webhook to activate", {
+        description: e instanceof Error ? e.message : undefined,
+      });
+    } finally {
+      setRunningWorkflow(null);
+    }
   };
+
 
   const handleUseTemplate = async (templateName: string) => {
     if (!profile?.workspace_id) {
