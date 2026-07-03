@@ -147,7 +147,7 @@ function KpiCard({ kpi }: { kpi: (typeof KPIS)[number] }) {
             <p className="mt-2 text-2xl font-bold tracking-tight">{kpi.value}</p>
             <p className="mt-1 text-xs font-medium text-emerald-600">{kpi.delta} vs last period</p>
           </div>
-          <div className={`rounded-lg p-2 ${kpi.tint}`}>
+          <div className={`rounded-xl p-2 ${kpi.tint}`}>
             <Icon className="h-4 w-4" />
           </div>
         </div>
