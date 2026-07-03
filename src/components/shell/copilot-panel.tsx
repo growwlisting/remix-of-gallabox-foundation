@@ -39,6 +39,9 @@ const INSIGHTS: Array<{ icon: LucideIcon; title: string; body: string }> = [
 
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
+const COPILOT_ERROR_MESSAGE =
+  "AI Copilot requires an OpenAI API key to be configured. Please add your OPENAI_API_KEY in Supabase Edge Function secrets.";
+
 function TypingDots() {
   return (
     <span className="inline-flex items-center gap-1">
@@ -84,15 +87,15 @@ function CopilotBody() {
           history,
         },
       });
-      const reply =
-        (data as { reply?: string } | null)?.reply ??
-        (error ? `Error: ${error.message}` : "I could not process that request.");
+      const payload = data as { reply?: string; error?: string } | null;
+      const reply = error
+        ? COPILOT_ERROR_MESSAGE
+        : payload?.error
+          ? COPILOT_ERROR_MESSAGE
+          : payload?.reply ?? "I could not process that request.";
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: `Error: ${(err as Error).message}` },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", content: COPILOT_ERROR_MESSAGE }]);
     } finally {
       setIsLoading(false);
     }
