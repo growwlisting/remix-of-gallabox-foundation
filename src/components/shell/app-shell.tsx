@@ -21,7 +21,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       <SidebarProvider>
         <div className="flex min-h-screen w-full bg-background">
           <AppSidebar />
-          <SidebarInset className="flex min-w-0 flex-1 flex-col">
+          <SidebarInset className="relative flex min-w-0 flex-1 flex-col">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 -z-10 opacity-70"
+              style={{
+                backgroundImage:
+                  "radial-gradient(900px 480px at 100% -10%, color-mix(in oklch, var(--brand-end) 10%, transparent), transparent 60%), radial-gradient(700px 400px at -10% 0%, color-mix(in oklch, var(--brand) 8%, transparent), transparent 55%)",
+              }}
+            />
             <AppTopbar onOpenCommand={() => setCmdOpen(true)} />
             <main className="flex-1 overflow-y-auto">
               <div className="mx-auto w-full max-w-7xl space-y-8 p-4 sm:p-6 lg:p-8">{children}</div>
