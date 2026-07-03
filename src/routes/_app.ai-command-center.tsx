@@ -149,9 +149,37 @@ const ACTIVITY_STATUS: Record<ActivityStatus, string> = {
 function AICommandCenterPage() {
   const { data: tasks, isLoading: tasksLoading } = useAITasks();
   const { data: profile } = useProfile();
+  const queryClient = useQueryClient();
   const completed = 5;
   const total = 18;
   const progress = (completed / total) * 100;
+
+  useEffect(() => {
+    const seed = async () => {
+      const workspaceId = profile?.workspace_id;
+      if (!workspaceId) return;
+      const { count } = await supabase
+        .from("ai_tasks")
+        .select("*", { count: "exact", head: true })
+        .eq("workspace_id", workspaceId);
+      if (count && count > 0) return;
+      const now = Date.now();
+      const ago = (m: number) => new Date(now - m * 60_000).toISOString();
+      const mock = [
+        { agent_name: "Lead Scoring", task_description: "Scored 142 new inbound leads from HubSpot", status: "completed", progress: 100, result: "142 leads scored — 18 marked Hot", created_at: ago(15), workspace_id: workspaceId },
+        { agent_name: "Persona Builder", task_description: "Built ICP persona for SaaS 50–200 employees", status: "completed", progress: 100, result: "Persona 'Growth-Stage SaaS RevOps' created", created_at: ago(65), workspace_id: workspaceId },
+        { agent_name: "Website Analyzer", task_description: "Analyzed 24 target account websites for buying signals", status: "completed", progress: 100, result: "9 accounts flagged with intent signals", created_at: ago(180), workspace_id: workspaceId },
+        { agent_name: "WhatsApp Agent", task_description: "Drafted 32 WhatsApp outreach messages", status: "completed", progress: 100, result: "32 messages queued in Outreach Studio", created_at: ago(320), workspace_id: workspaceId },
+        { agent_name: "LinkedIn Agent", task_description: "Sent 18 LinkedIn connection requests", status: "completed", progress: 100, result: "18 sent · 6 accepted so far", created_at: ago(720), workspace_id: workspaceId },
+        { agent_name: "Meeting Coach", task_description: "Preparing discovery brief for Stripe call", status: "running", progress: 45, result: null, created_at: ago(4), workspace_id: workspaceId },
+      ];
+      await supabase.from("ai_tasks").insert(mock);
+      queryClient.invalidateQueries({ queryKey: ["ai_tasks", workspaceId] });
+    };
+    seed();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.workspace_id]);
+
 
   const runningAgents = useMemo(() => {
     const set = new Set<string>();
