@@ -94,10 +94,12 @@ function ActiveWorkflowCard({
   workflow,
   onRun,
   isRunning,
+  lastRun,
 }: {
   workflow: WorkflowCard;
-  onRun: (name: string) => void;
+  onRun: (workflow: WorkflowCard) => void;
   isRunning: boolean;
+  lastRun: string | null;
 }) {
   return (
     <Card className="card-hover">
@@ -135,6 +137,10 @@ function ActiveWorkflowCard({
           </Badge>
         </div>
 
+        <p className="mt-3 text-[11px] text-muted-foreground">
+          Last run: {lastRun ?? "never"}
+        </p>
+
         <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
           <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
             <Pause className="h-3.5 w-3.5" />
@@ -144,7 +150,7 @@ function ActiveWorkflowCard({
             size="sm"
             variant="ghost"
             disabled={isRunning}
-            onClick={() => onRun(workflow.name)}
+            onClick={() => onRun(workflow)}
             className="h-8 gap-1.5 text-xs"
           >
             {isRunning ? (
@@ -159,6 +165,7 @@ function ActiveWorkflowCard({
     </Card>
   );
 }
+
 
 
 /* ------------------------------------------------------------------ */
