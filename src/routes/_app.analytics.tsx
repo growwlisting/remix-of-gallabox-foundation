@@ -387,7 +387,7 @@ function AnalyticsPage() {
         <TabsContent value="ai" className="mt-6 flex flex-col gap-6">
           <Card className="border-indigo-500/30 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-transparent">
             <CardContent className="flex items-center gap-4 p-5">
-              <div className="rounded-lg bg-indigo-500/15 p-3 text-indigo-600">
+              <div className="rounded-xl bg-gradient-to-br from-[#EEF2FF] to-[#F5F3FF] p-3 text-[#6C63FF]">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
