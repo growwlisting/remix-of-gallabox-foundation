@@ -94,10 +94,12 @@ function ActiveWorkflowCard({
   workflow,
   onRun,
   isRunning,
+  lastRun,
 }: {
   workflow: WorkflowCard;
-  onRun: (name: string) => void;
+  onRun: (workflow: WorkflowCard) => void;
   isRunning: boolean;
+  lastRun: string | null;
 }) {
   return (
     <Card className="card-hover">
@@ -135,6 +137,10 @@ function ActiveWorkflowCard({
           </Badge>
         </div>
 
+        <p className="mt-3 text-[11px] text-muted-foreground">
+          Last run: {lastRun ?? "never"}
+        </p>
+
         <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
           <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
             <Pause className="h-3.5 w-3.5" />
@@ -144,7 +150,7 @@ function ActiveWorkflowCard({
             size="sm"
             variant="ghost"
             disabled={isRunning}
-            onClick={() => onRun(workflow.name)}
+            onClick={() => onRun(workflow)}
             className="h-8 gap-1.5 text-xs"
           >
             {isRunning ? (
@@ -159,6 +165,7 @@ function ActiveWorkflowCard({
     </Card>
   );
 }
+
 
 
 /* ------------------------------------------------------------------ */
@@ -392,23 +399,41 @@ function AutomationStudioPage() {
   const { data: profile } = useProfile();
   const { data: tasks = [] } = useAITasks();
   const [runningWorkflow, setRunningWorkflow] = useState<string | null>(null);
+  const [lastRuns, setLastRuns] = useState<Record<string, string>>({});
 
   const workflowLog = tasks
     .filter((t) => t.agent_name === "Workflow Builder")
     .slice(0, 5);
 
-  const handleRunWorkflow = async (workflowName: string) => {
-    setRunningWorkflow(workflowName);
-    const { data } = await supabase.functions.invoke("trigger-workflow", {
-      body: {
-        workflowName,
-        payload: { source: "GrowthOS", workspace: profile?.workspace_id },
-      },
-    });
-    if (data?.ok) toast.success(`${workflowName} triggered successfully`);
-    else toast.error("Workflow failed — add N8N_WEBHOOK_BASE_URL to secrets");
-    setRunningWorkflow(null);
+  const handleRunWorkflow = async (workflow: WorkflowCard) => {
+    setRunningWorkflow(workflow.name);
+    // Optimistic "Last run"
+    setLastRuns((prev) => ({ ...prev, [workflow.id]: "just now" }));
+    try {
+      const { data, error } = await supabase.functions.invoke("trigger-workflow", {
+        body: {
+          workflowId: workflow.id,
+          workflowName: workflow.name,
+          workspaceId: profile?.workspace_id,
+        },
+      });
+      if (error) throw error;
+      if (data?.status === "triggered") {
+        toast.success("Workflow triggered successfully");
+      } else {
+        toast(`${workflow.name} queued`, {
+          description: "Workflow queued — configure n8n webhook to activate",
+        });
+      }
+    } catch (e) {
+      toast.error("Workflow queued — configure n8n webhook to activate", {
+        description: e instanceof Error ? e.message : undefined,
+      });
+    } finally {
+      setRunningWorkflow(null);
+    }
   };
+
 
   const handleUseTemplate = async (templateName: string) => {
     if (!profile?.workspace_id) {
@@ -466,8 +491,10 @@ function AutomationStudioPage() {
               workflow={w}
               onRun={handleRunWorkflow}
               isRunning={runningWorkflow === w.name}
+              lastRun={lastRuns[w.id] ?? null}
             />
           ))}
+
         </div>
       </section>
 
