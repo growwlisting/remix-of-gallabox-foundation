@@ -276,6 +276,30 @@ function relTimeShort(iso: string): string {
 
 function CampaignStudioPage() {
   const { data: rows, isLoading } = useCampaigns();
+  const { data: profile } = useProfile();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const seed = async () => {
+      const workspaceId = profile?.workspace_id;
+      if (!workspaceId) return;
+      const { count } = await supabase
+        .from("campaigns")
+        .select("*", { count: "exact", head: true })
+        .eq("workspace_id", workspaceId);
+      if (count && count > 0) return;
+      const mock = [
+        { name: "Q3 Enterprise Outbound", status: "Active", channels: ["email", "linkedin"], leads_count: 240, sent_count: 186, open_count: 92, reply_count: 24, meetings_count: 7, workspace_id: workspaceId },
+        { name: "Product-Led Trial Nurture", status: "Draft", channels: ["email"], leads_count: 0, sent_count: 0, open_count: 0, reply_count: 0, meetings_count: 0, workspace_id: workspaceId },
+        { name: "Fintech ABM — Wave 1", status: "Completed", channels: ["email", "linkedin", "whatsapp"], leads_count: 120, sent_count: 120, open_count: 78, reply_count: 31, meetings_count: 12, workspace_id: workspaceId },
+      ];
+      await supabase.from("campaigns").insert(mock);
+      queryClient.invalidateQueries({ queryKey: ["campaigns", workspaceId] });
+    };
+    seed();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.workspace_id]);
+
   const campaigns: Campaign[] = (rows ?? []).map((r) => {
     const status = (["Active", "Draft", "Paused"].includes(r.status)
       ? r.status
