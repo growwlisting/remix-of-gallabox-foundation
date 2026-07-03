@@ -11,7 +11,7 @@ import { useCopilot } from "./copilot-provider";
 export function AppTopbar({ onOpenCommand }: { onOpenCommand: () => void }) {
   const { toggle: toggleCopilot, open: copilotOpen } = useCopilot();
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:px-4">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border/70 bg-background/70 px-3 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55 sm:px-4">
       <SidebarTrigger className="-ml-1" />
       <Separator orientation="vertical" className="mr-1 hidden h-5 sm:block" />
       <div className="hidden min-w-0 flex-1 md:flex">
