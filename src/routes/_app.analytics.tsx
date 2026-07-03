@@ -42,10 +42,10 @@ import { ArrowUpRight, Clock, Mail, MessageCircle, Calendar, Sparkles } from "lu
 const meta = getRouteMeta("/analytics")!;
 
 const KPIS = [
-  { label: "Total Emails Sent", value: "12,847", delta: "+18%", icon: Mail, tint: "text-indigo-600 bg-indigo-500/10" },
-  { label: "Avg Open Rate", value: "34%", delta: "+4%", icon: ArrowUpRight, tint: "text-blue-600 bg-blue-500/10" },
-  { label: "Reply Rate", value: "9.2%", delta: "+1.2%", icon: MessageCircle, tint: "text-emerald-600 bg-emerald-500/10" },
-  { label: "Meetings Booked", value: "147", delta: "+23%", icon: Calendar, tint: "text-violet-600 bg-violet-500/10" },
+  { label: "Total Emails Sent", value: "12,847", delta: "+18%", icon: Mail, tint: "bg-gradient-to-br from-[#EEF2FF] to-[#F5F3FF] text-[#6C63FF]" },
+  { label: "Avg Open Rate", value: "34%", delta: "+4%", icon: ArrowUpRight, tint: "bg-gradient-to-br from-[#EEF2FF] to-[#F5F3FF] text-[#6C63FF]" },
+  { label: "Reply Rate", value: "9.2%", delta: "+1.2%", icon: MessageCircle, tint: "bg-gradient-to-br from-[#EEF2FF] to-[#F5F3FF] text-[#6C63FF]" },
+  { label: "Meetings Booked", value: "147", delta: "+23%", icon: Calendar, tint: "bg-gradient-to-br from-[#EEF2FF] to-[#F5F3FF] text-[#6C63FF]" },
 ];
 
 const WEEKLY = Array.from({ length: 8 }).map((_, i) => {
@@ -147,7 +147,7 @@ function KpiCard({ kpi }: { kpi: (typeof KPIS)[number] }) {
             <p className="mt-2 text-2xl font-bold tracking-tight">{kpi.value}</p>
             <p className="mt-1 text-xs font-medium text-emerald-600">{kpi.delta} vs last period</p>
           </div>
-          <div className={`rounded-lg p-2 ${kpi.tint}`}>
+          <div className={`rounded-xl p-2 ${kpi.tint}`}>
             <Icon className="h-4 w-4" />
           </div>
         </div>
@@ -190,10 +190,30 @@ function AnalyticsPage() {
 
       <Tabs defaultValue="overview">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="outreach">Outreach</TabsTrigger>
-          <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
-          <TabsTrigger value="ai">AI Performance</TabsTrigger>
+          <TabsTrigger
+            value="overview"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6C63FF] data-[state=active]:to-[#8B5CF6] data-[state=active]:text-white data-[state=active]:shadow"
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger
+            value="outreach"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6C63FF] data-[state=active]:to-[#8B5CF6] data-[state=active]:text-white data-[state=active]:shadow"
+          >
+            Outreach
+          </TabsTrigger>
+          <TabsTrigger
+            value="pipeline"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6C63FF] data-[state=active]:to-[#8B5CF6] data-[state=active]:text-white data-[state=active]:shadow"
+          >
+            Pipeline
+          </TabsTrigger>
+          <TabsTrigger
+            value="ai"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6C63FF] data-[state=active]:to-[#8B5CF6] data-[state=active]:text-white data-[state=active]:shadow"
+          >
+            AI Performance
+          </TabsTrigger>
         </TabsList>
 
         {/* OVERVIEW */}
@@ -387,7 +407,7 @@ function AnalyticsPage() {
         <TabsContent value="ai" className="mt-6 flex flex-col gap-6">
           <Card className="border-indigo-500/30 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-transparent">
             <CardContent className="flex items-center gap-4 p-5">
-              <div className="rounded-lg bg-indigo-500/15 p-3 text-indigo-600">
+              <div className="rounded-xl bg-gradient-to-br from-[#EEF2FF] to-[#F5F3FF] p-3 text-[#6C63FF]">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
