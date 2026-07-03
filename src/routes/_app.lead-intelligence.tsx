@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/use-auth";
 import {
   Search,
   Upload,
@@ -125,9 +128,40 @@ export const Route = createFileRoute("/_app/lead-intelligence")({
 
 function LeadIntelligencePage() {
   const { data: contacts, isLoading } = useContacts();
+  const { data: profile } = useProfile();
+  const queryClient = useQueryClient();
   const leads: Lead[] = (contacts ?? []).map(contactToLead);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = leads.find((l) => l.id === selectedId) ?? leads[0] ?? null;
+
+  useEffect(() => {
+    const seed = async () => {
+      const workspaceId = profile?.workspace_id;
+      if (!workspaceId) return;
+      const { count } = await supabase
+        .from("contacts")
+        .select("*", { count: "exact", head: true })
+        .eq("workspace_id", workspaceId);
+      if (count && count > 0) return;
+      const now = new Date();
+      const mins = (m: number) => new Date(now.getTime() - m * 60_000).toISOString();
+      const mock = [
+        { first_name: "Sarah", last_name: "Chen", title: "VP of Sales", company: "Notion Labs", email: "sarah@notion.so", linkedin_url: "https://linkedin.com/in/sarahchen", lead_score: 94, stage: "Hot", last_activity: mins(12), signals: [{ label: "Hiring 5 AEs", tone: "hiring" }, { label: "Series C closed", tone: "funding" }, { label: "Visited pricing 4x", tone: "intent" }], workspace_id: workspaceId },
+        { first_name: "Marcus", last_name: "Rivera", title: "Head of RevOps", company: "Vercel", email: "marcus@vercel.com", linkedin_url: "https://linkedin.com/in/mrivera", lead_score: 89, stage: "Hot", last_activity: mins(45), signals: [{ label: "Downloaded whitepaper", tone: "intent" }, { label: "Uses Salesforce", tone: "tech" }], workspace_id: workspaceId },
+        { first_name: "Priya", last_name: "Nair", title: "CRO", company: "Ramp", email: "priya@ramp.com", linkedin_url: "https://linkedin.com/in/priyanair", lead_score: 87, stage: "Hot", last_activity: mins(120), signals: [{ label: "Hiring SDR team", tone: "hiring" }, { label: "Intent surge fintech", tone: "intent" }], workspace_id: workspaceId },
+        { first_name: "Daniel", last_name: "Park", title: "Director of Growth", company: "Linear", email: "daniel@linear.app", linkedin_url: "https://linkedin.com/in/danielpark", lead_score: 72, stage: "Warm", last_activity: mins(360), signals: [{ label: "Opened 3 emails", tone: "intent" }, { label: "Migrating to HubSpot", tone: "tech" }], workspace_id: workspaceId },
+        { first_name: "Emily", last_name: "Zhang", title: "Sales Ops Lead", company: "Figma", email: "emily@figma.com", linkedin_url: "https://linkedin.com/in/emilyzhang", lead_score: 68, stage: "Warm", last_activity: mins(720), signals: [{ label: "Series D funding", tone: "funding" }], workspace_id: workspaceId },
+        { first_name: "James", last_name: "O'Connor", title: "VP Marketing", company: "Retool", email: "james@retool.com", linkedin_url: "https://linkedin.com/in/joconnor", lead_score: 61, stage: "Warm", last_activity: mins(1440), signals: [{ label: "Uses Marketo", tone: "tech" }, { label: "Hiring PMM", tone: "hiring" }], workspace_id: workspaceId },
+        { first_name: "Ana", last_name: "Silva", title: "Founder", company: "Loom", email: "ana@loom.com", linkedin_url: "https://linkedin.com/in/anasilva", lead_score: 42, stage: "Cold", last_activity: mins(4320), signals: [{ label: "Newsletter subscriber", tone: "intent" }], workspace_id: workspaceId },
+        { first_name: "Tom", last_name: "Becker", title: "Growth PM", company: "Airtable", email: "tom@airtable.com", linkedin_url: "https://linkedin.com/in/tombecker", lead_score: 35, stage: "Nurture", last_activity: mins(10080), signals: [{ label: "Attended webinar Q1", tone: "intent" }], workspace_id: workspaceId },
+      ];
+      await supabase.from("contacts").insert(mock);
+      queryClient.invalidateQueries({ queryKey: ["contacts", workspaceId] });
+    };
+    seed();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.workspace_id]);
+
 
 
   return (
