@@ -57,28 +57,28 @@ const STATS: Stat[] = [
     value: "$2.4M",
     change: 12,
     icon: TrendingUp,
-    iconClass: "bg-indigo-500/10 text-indigo-500",
+    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
   },
   {
     label: "Active Leads",
     value: "1,284",
     change: 8,
     icon: Users,
-    iconClass: "bg-green-500/10 text-green-500",
+    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
   },
   {
     label: "Meetings Booked",
     value: "47",
     change: 23,
     icon: Calendar,
-    iconClass: "bg-blue-500/10 text-blue-500",
+    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
   },
   {
     label: "Won This Month",
     value: "$340K",
     change: 5,
     icon: DollarSign,
-    iconClass: "bg-emerald-500/10 text-emerald-500",
+    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
   },
 ];
 
@@ -126,21 +126,21 @@ const INSIGHTS: {
     title: "18 deals stalled >14 days — re-engage now",
     description: "AI drafted personalized nudges ready to send from Outreach Studio.",
     accent: "border-l-rose-500",
-    iconClass: "bg-rose-500/10 text-rose-500",
+    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
   },
   {
     icon: Target,
     title: "Top ICP match: SaaS companies 50–200 employees",
     description: "142 new accounts detected this week that mirror your best customers.",
     accent: "border-l-amber-500",
-    iconClass: "bg-amber-500/10 text-amber-600",
+    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
   },
   {
     icon: Sparkles,
     title: "Email open rate up 31% this week",
     description: "Subject line variant B is outperforming — promote to primary sequence?",
     accent: "border-l-emerald-500",
-    iconClass: "bg-emerald-500/10 text-emerald-500",
+    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
   },
 ];
 
