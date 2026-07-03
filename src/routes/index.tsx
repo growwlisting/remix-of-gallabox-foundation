@@ -206,19 +206,19 @@ function LandingPage() {
       <nav
         aria-label="Primary"
         className={cn(
-          "fixed inset-x-0 top-0 z-50 backdrop-blur-md transition-colors",
+          "fixed inset-x-0 top-0 z-50 backdrop-blur-md transition-all",
           scrolled
-            ? "border-b border-border bg-background/85"
-            : "border-b border-transparent bg-background/60",
+            ? "border-b border-slate-200/60 bg-white/80 shadow-sm"
+            : "border-b border-transparent bg-white/60",
         )}
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5">
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="brand-gradient grid h-8 w-8 place-items-center rounded-lg">
-              <Sparkles className="h-4 w-4 text-primary-foreground" />
+            <span className="brand-gradient grid h-9 w-9 place-items-center rounded-xl shadow-lg shadow-indigo-500/25">
+              <Sparkles className="h-4 w-4 text-white" />
             </span>
-            <span className="text-[15px] font-semibold tracking-tight">
-              Gallabox <span className="brand-text">GrowthOS</span>
+            <span className="text-[15px] font-bold tracking-tight text-slate-900">
+              Gallabox <span className="text-[#6C63FF]">GrowthOS</span>
             </span>
           </Link>
 
@@ -227,7 +227,7 @@ function LandingPage() {
               <a
                 key={l.href}
                 href={l.href}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                className="text-[15px] font-medium text-slate-600 transition-colors hover:text-slate-900"
               >
                 {l.label}
               </a>
@@ -239,7 +239,7 @@ function LandingPage() {
             {authed ? (
               <button
                 onClick={goApp}
-                className="brand-gradient rounded-lg px-4 py-2 text-sm font-medium text-primary-foreground shadow-[var(--shadow-soft)] transition-transform hover:scale-[1.02]"
+                className="rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.02] hover:shadow-indigo-500/40"
               >
                 Go to app →
               </button>
@@ -247,13 +247,13 @@ function LandingPage() {
               <>
                 <Link
                   to="/login"
-                  className="inline-flex items-center rounded-lg border border-border bg-transparent px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  className="inline-flex items-center rounded-xl px-4 py-2.5 text-[15px] font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/signup"
-                  className="brand-gradient rounded-lg px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-soft)] transition-transform hover:scale-[1.02]"
+                  className="rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-6 py-2.5 text-[15px] font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.02] hover:shadow-indigo-500/40"
                 >
                   Start Free Trial
                 </Link>
@@ -323,39 +323,47 @@ function LandingPage() {
         <section
           id="hero"
           aria-label="Hero"
-          className="gos-hero-bg relative overflow-hidden pt-32 pb-20"
+          className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-[#F0EEFF] to-white pt-32 pb-24"
         >
-          <div className="gos-grid-bg absolute inset-0" aria-hidden />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-[-100px] -z-10 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-[#6C63FF]/10 blur-[120px]"
+          />
+          <div className="gos-grid-bg absolute inset-0 opacity-40" aria-hidden />
           <div className="relative mx-auto max-w-6xl px-5 text-center">
-            <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-3.5 py-1.5">
-              <span className="gos-pulse-dot h-1.5 w-1.5 rounded-full bg-success shadow-[0_0_8px_var(--success)]" />
-              <span className={cn(eyebrow, "text-success")}>LIVE · 15 AI AGENTS RUNNING</span>
+            <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5">
+              <span className="gos-pulse-dot h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_theme(colors.emerald.500)]" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
+                LIVE · 15 AI AGENTS RUNNING
+              </span>
             </div>
 
-            <h1 className="mx-auto mt-6 max-w-4xl text-[40px] font-bold leading-[1.05] tracking-tight text-foreground md:text-[64px]">
+            <h1 className="mx-auto mt-7 max-w-5xl text-[44px] font-extrabold leading-[1.05] tracking-tight text-slate-900 md:text-[72px]">
               Your AI Workforce for
               <br />
-              <span className="brand-text">Revenue Generation.</span>
+              <span className="bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] bg-clip-text text-transparent">
+                Revenue Generation.
+              </span>
             </h1>
 
-            <p className="mx-auto mt-6 max-w-[620px] text-lg leading-relaxed text-muted-foreground md:text-xl">
+            <p className="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-slate-500 md:text-xl">
               GrowthOS replaces your SDR stack with 15 specialized AI agents that research,
               prospect, write outreach, run campaigns, and close deals — all in one OS.
             </p>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <Link
                 to="/signup"
-                className="brand-gradient ai-glow inline-flex items-center gap-2 rounded-xl px-6 py-3.5 text-base font-semibold text-primary-foreground transition-transform hover:scale-[1.02]"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-8 py-4 text-base font-semibold text-white shadow-xl shadow-indigo-500/30 transition-all hover:scale-[1.02] hover:shadow-indigo-500/50 active:scale-[0.98]"
               >
                 Start Free Trial <ArrowRight className="h-4 w-4" />
               </Link>
-              <button className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-base font-medium text-foreground hover:bg-accent">
+              <button className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-8 py-4 text-base font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50">
                 <Play className="h-4 w-4" /> Watch Demo
               </button>
             </div>
 
-            <p className={cn(eyebrow, "mt-5 text-muted-foreground")}>
+            <p className="mt-6 text-xs font-medium uppercase tracking-widest text-slate-400">
               Trusted by 500+ B2B revenue teams · No credit card required
             </p>
 
@@ -451,9 +459,9 @@ function LandingPage() {
         {/* PROBLEM / SOLUTION */}
         <section id="problem" aria-label="Problem and solution" className="py-24">
           <div className="mx-auto grid max-w-6xl gap-6 px-5 md:grid-cols-2">
-            <div className="gos-reveal rounded-2xl border border-destructive/25 bg-card p-8">
-              <h2 className="text-2xl font-bold tracking-tight text-destructive">
-                Your stack is broken.
+            <div className="gos-reveal rounded-2xl border border-red-100 bg-red-50/60 p-8">
+              <h2 className="text-xl font-bold tracking-tight text-red-600">
+                Without GrowthOS
               </h2>
               <ul className="mt-6 space-y-3">
                 {[
@@ -463,17 +471,17 @@ function LandingPage() {
                   "AI tools that don't talk to each other",
                   "$15,000+/month in stack costs",
                 ].map((t) => (
-                  <li key={t} className="flex items-start gap-3 text-sm text-foreground">
-                    <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
+                  <li key={t} className="flex items-start gap-3 text-[15px] text-slate-700">
+                    <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-400" />
                     <span>{t}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="gos-reveal rounded-2xl border border-success/25 bg-card p-8">
-              <h2 className="text-2xl font-bold tracking-tight text-success">
-                One OS. 15 AI Agents.
+            <div className="gos-reveal rounded-2xl border border-[#6C63FF]/20 bg-gradient-to-br from-[#F0EEFF] to-white p-8 shadow-sm">
+              <h2 className="text-xl font-bold tracking-tight text-[#4F46E5]">
+                With GrowthOS
               </h2>
               <ul className="mt-6 space-y-3">
                 {[
@@ -483,8 +491,8 @@ function LandingPage() {
                   "Agents collaborate: ICP Builder feeds Outreach Writer",
                   "One platform, fraction of the cost",
                 ].map((t) => (
-                  <li key={t} className="flex items-start gap-3 text-sm text-foreground">
-                    <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" />
+                  <li key={t} className="flex items-start gap-3 text-[15px] text-slate-700">
+                    <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
                     <span>{t}</span>
                   </li>
                 ))}
@@ -506,17 +514,19 @@ function LandingPage() {
               </p>
             </div>
 
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {FEATURES.map((f) => (
                 <div
                   key={f.name}
-                  className="gos-reveal gos-feature rounded-xl border border-l-2 border-border bg-card p-5"
+                  className="gos-reveal group rounded-2xl border border-slate-200 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#6C63FF]/30 hover:shadow-xl hover:shadow-purple-500/10"
                 >
-                  <f.icon className="h-5 w-5 text-primary" />
-                  <h3 className="mt-3 text-base font-semibold tracking-tight text-foreground">
+                  <div className="inline-grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-[#EEF2FF] to-[#F5F3FF] transition-transform group-hover:scale-110">
+                    <f.icon className="h-5 w-5 text-[#4F46E5]" />
+                  </div>
+                  <h3 className="mt-5 text-[17px] font-semibold tracking-tight text-slate-900">
                     {f.name}
                   </h3>
-                  <p className="mt-1.5 text-sm text-muted-foreground">{f.desc}</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{f.desc}</p>
                 </div>
               ))}
             </div>
@@ -524,37 +534,38 @@ function LandingPage() {
         </section>
 
         {/* AGENTS */}
-        <section id="agents" aria-label="AI agents" className="bg-surface py-24">
-          <div className="mx-auto max-w-6xl px-5">
+        <section id="agents" aria-label="AI agents" className="relative overflow-hidden bg-gradient-to-b from-slate-950 to-[#0D0B1E] py-24">
+          <div
+            aria-hidden
+            className="absolute left-1/2 top-0 -z-0 h-[400px] w-[900px] -translate-x-1/2 rounded-full bg-[#6C63FF]/15 blur-[140px]"
+          />
+          <div className="relative mx-auto max-w-6xl px-5">
             <div className="gos-reveal text-center">
-              <p className={cn(eyebrow, "text-success")}>AI Agents</p>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#A78BFA]">AI Agents</p>
+              <h2 className="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl">
                 15 AI agents. One revenue team.
               </h2>
-              <p className="mx-auto mt-3 max-w-2xl text-base text-muted-foreground">
+              <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-400">
                 Each agent is a specialist. Together they're unstoppable.
               </p>
             </div>
 
-            <div className="gos-hide-scrollbar mt-12 flex gap-3 overflow-x-auto pb-2">
+            <div className="gos-hide-scrollbar mt-12 flex gap-4 overflow-x-auto pb-2">
               {AGENTS.map((a) => (
                 <div
                   key={a.name}
-                  className="flex w-[130px] flex-shrink-0 flex-col items-start rounded-xl border border-border bg-card p-3"
+                  className="group flex w-[150px] flex-shrink-0 cursor-pointer flex-col items-start rounded-2xl border border-white/10 bg-white/5 p-5 transition-all hover:-translate-y-1 hover:border-[#6C63FF]/40 hover:bg-white/10"
                 >
-                  <div className="text-2xl">{a.emoji}</div>
-                  <div className="mt-3 text-[13px] font-semibold text-foreground">{a.name}</div>
-                  <div className="mt-2 flex items-center gap-1.5">
-                    <span className={cn("h-1.5 w-1.5 rounded-full", AGENT_CATEGORIES[a.cat].className)} />
-                    <span className={cn(eyebrow, "text-muted-foreground")}>
-                      {AGENT_CATEGORIES[a.cat].label}
-                    </span>
+                  <span className="mb-3 block text-2xl">{a.emoji}</span>
+                  <div className="text-[15px] font-semibold text-white">{a.name}</div>
+                  <div className="mt-3 rounded-full bg-[#6C63FF]/20 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-[#A78BFA]">
+                    {AGENT_CATEGORIES[a.cat].label}
                   </div>
                 </div>
               ))}
             </div>
 
-            <p className="gos-reveal mt-10 text-center text-sm text-muted-foreground">
+            <p className="gos-reveal mt-12 text-center text-sm text-slate-400">
               All agents share context → your ICP feeds your Outreach Writer which feeds your
               Campaign Builder.
             </p>
@@ -563,10 +574,10 @@ function LandingPage() {
               {["ICP Builder", "Lead Scoring", "Outreach Writer", "Campaign Builder", "Analytics Agent"].map(
                 (n, i, arr) => (
                   <div key={n} className="flex items-center gap-2">
-                    <div className="rounded-lg border border-primary/40 bg-card px-3 py-2 text-xs font-medium text-foreground">
+                    <div className="rounded-xl border border-[#6C63FF]/30 bg-white/5 px-3 py-2 text-xs font-medium text-white backdrop-blur-sm">
                       {n}
                     </div>
-                    {i < arr.length - 1 && <ArrowRight className="h-4 w-4 text-primary" />}
+                    {i < arr.length - 1 && <ArrowRight className="h-4 w-4 text-[#A78BFA]" />}
                   </div>
                 ),
               )}
@@ -627,8 +638,9 @@ function LandingPage() {
         </section>
 
         {/* METRICS */}
-        <section aria-label="Metrics" className="border-y border-border bg-surface py-16">
-          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-5 md:grid-cols-4">
+        <section aria-label="Metrics" className="relative overflow-hidden bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] py-20">
+          <div aria-hidden className="absolute inset-0 gos-grid-bg opacity-10" />
+          <div className="relative mx-auto grid max-w-6xl grid-cols-2 gap-8 px-5 md:grid-cols-4">
             {[
               { v: "15", l: "AI Agents" },
               { v: "3x", l: "More replies vs manual outreach" },
@@ -636,10 +648,10 @@ function LandingPage() {
               { v: "500+", l: "Revenue teams using GrowthOS" },
             ].map((m) => (
               <div key={m.l} className="gos-reveal text-center">
-                <div className="brand-text text-5xl font-extrabold tracking-tight md:text-[56px]">
+                <div className="text-5xl font-black tracking-tight text-white md:text-6xl">
                   {m.v}
                 </div>
-                <div className="mt-2 text-sm text-muted-foreground">{m.l}</div>
+                <div className="mt-2 text-sm font-medium text-white/75">{m.l}</div>
               </div>
             ))}
           </div>
@@ -754,26 +766,53 @@ function LandingPage() {
                 <div
                   key={p.name}
                   className={cn(
-                    "gos-reveal relative flex flex-col rounded-2xl border bg-card p-6",
-                    p.highlighted ? "border-primary ai-glow" : "border-border",
+                    "gos-reveal relative flex flex-col overflow-hidden rounded-2xl border p-8 transition-all",
+                    p.highlighted
+                      ? "scale-[1.02] border-transparent bg-gradient-to-b from-[#4F46E5] to-[#5B21B6] text-white shadow-2xl shadow-indigo-500/40"
+                      : "border-slate-200 bg-white shadow-sm hover:-translate-y-0.5 hover:shadow-xl hover:shadow-purple-500/10",
                   )}
                 >
                   {p.highlighted && (
-                    <span className="brand-gradient absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[11px] font-semibold text-primary-foreground">
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#4F46E5] shadow-lg">
                       Most Popular
                     </span>
                   )}
-                  <div className="text-sm font-semibold text-muted-foreground">{p.name}</div>
-                  <div className="mt-3 flex items-baseline gap-1">
-                    <span className="text-4xl font-extrabold tracking-tight text-foreground">
+                  <div
+                    className={cn(
+                      "text-sm font-bold uppercase tracking-wider",
+                      p.highlighted ? "text-white/80" : "text-slate-500",
+                    )}
+                  >
+                    {p.name}
+                  </div>
+                  <div className="mt-4 flex items-baseline gap-1">
+                    <span
+                      className={cn(
+                        "text-5xl font-black tracking-tight",
+                        p.highlighted ? "text-white" : "text-slate-900",
+                      )}
+                    >
                       {p.price}
                     </span>
-                    <span className="text-sm text-muted-foreground">{p.suffix}</span>
+                    <span className={p.highlighted ? "text-sm text-white/70" : "text-sm text-slate-500"}>
+                      {p.suffix}
+                    </span>
                   </div>
-                  <ul className="mt-6 flex-1 space-y-2.5">
+                  <ul className="mt-7 flex-1 space-y-3">
                     {p.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2 text-sm text-foreground">
-                        <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" />
+                      <li
+                        key={f}
+                        className={cn(
+                          "flex items-start gap-2.5 text-[15px]",
+                          p.highlighted ? "text-white/95" : "text-slate-700",
+                        )}
+                      >
+                        <Check
+                          className={cn(
+                            "mt-0.5 h-4 w-4 flex-shrink-0",
+                            p.highlighted ? "text-white" : "text-emerald-500",
+                          )}
+                        />
                         <span>{f}</span>
                       </li>
                     ))}
@@ -781,10 +820,10 @@ function LandingPage() {
                   <button
                     onClick={p.action}
                     className={cn(
-                      "mt-6 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all hover:brightness-110",
+                      "mt-7 rounded-xl px-5 py-3 text-sm font-bold transition-all active:scale-[0.98]",
                       p.highlighted
-                        ? "brand-gradient text-primary-foreground"
-                        : "border border-border bg-transparent text-foreground hover:bg-accent",
+                        ? "bg-white text-[#4F46E5] shadow-lg hover:bg-slate-50"
+                        : "bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white shadow-lg shadow-indigo-500/25 hover:scale-[1.02] hover:shadow-indigo-500/40",
                     )}
                   >
                     {p.cta}
@@ -800,22 +839,30 @@ function LandingPage() {
         </section>
 
         {/* FINAL CTA */}
-        <section aria-label="Get started" className="py-24 text-center">
+        <section aria-label="Get started" className="relative overflow-hidden py-28 text-center">
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900"
+          />
+          <div
+            aria-hidden
+            className="absolute left-1/2 top-1/2 -z-10 h-[600px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6C63FF]/25 blur-[140px]"
+          />
           <div className="mx-auto max-w-3xl px-5">
-            <h2 className="gos-reveal text-3xl font-extrabold tracking-tight text-foreground md:text-5xl">
+            <h2 className="gos-reveal text-4xl font-extrabold tracking-tight text-white md:text-5xl">
               Start building your AI revenue team today.
             </h2>
-            <p className="gos-reveal mt-4 text-base text-muted-foreground">
+            <p className="gos-reveal mx-auto mt-5 max-w-xl text-lg text-slate-300">
               Join 500+ B2B teams running their outreach on autopilot.
             </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <button
                 onClick={goSignup}
-                className="brand-gradient ai-glow inline-flex items-center gap-2 rounded-xl px-7 py-4 text-base font-semibold text-primary-foreground"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] px-10 py-4 text-base font-bold text-white shadow-2xl shadow-indigo-500/40 transition-all hover:scale-[1.02] hover:shadow-indigo-500/60 active:scale-[0.98]"
               >
                 Start Free Trial — It's Free <ArrowRight className="h-4 w-4" />
               </button>
-              <button className="rounded-xl border border-border bg-card px-7 py-4 text-base font-medium text-foreground hover:bg-accent">
+              <button className="rounded-xl border-2 border-white/20 bg-white/5 px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/10">
                 Schedule a Demo
               </button>
             </div>
@@ -824,19 +871,19 @@ function LandingPage() {
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t border-border bg-surface px-5 py-14">
+      <footer className="border-t border-slate-800 bg-slate-950 px-5 py-16 text-slate-400">
         <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-4">
           <div>
             <Link to="/" className="flex items-center gap-2">
-              <span className="brand-gradient grid h-8 w-8 place-items-center rounded-lg">
-                <Sparkles className="h-4 w-4 text-primary-foreground" />
+              <span className="brand-gradient grid h-9 w-9 place-items-center rounded-xl shadow-lg shadow-indigo-500/30">
+                <Sparkles className="h-4 w-4 text-white" />
               </span>
-              <span className="text-sm font-semibold tracking-tight text-foreground">
+              <span className="text-sm font-bold tracking-tight text-white">
                 Gallabox GrowthOS
               </span>
             </Link>
-            <p className="mt-3 text-xs text-muted-foreground">AI-native Revenue OS</p>
-            <p className="mt-4 text-xs text-muted-foreground/70">© 2026 Gallabox GrowthOS</p>
+            <p className="mt-4 text-sm text-slate-500">AI-native Revenue OS</p>
+            <p className="mt-6 text-xs text-slate-600">© 2026 Gallabox GrowthOS</p>
           </div>
           <FooterCol
             title="Product"
@@ -852,7 +899,7 @@ function LandingPage() {
           <FooterCol title="Company" items={["About", "Blog", "Careers", "Press"]} />
           <FooterCol title="Legal" items={["Privacy Policy", "Terms of Service", "Security"]} />
         </div>
-        <div className="mx-auto mt-10 flex max-w-6xl flex-wrap items-center justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground">
+        <div className="mx-auto mt-12 flex max-w-6xl flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-6 text-xs text-slate-600">
           <span>© 2026 Gallabox GrowthOS. All rights reserved.</span>
           <span className="font-mono">Made with AI</span>
         </div>
@@ -864,11 +911,11 @@ function LandingPage() {
 function FooterCol({ title, items }: { title: string; items: string[] }) {
   return (
     <div>
-      <div className={cn(eyebrow, "text-muted-foreground")}>{title}</div>
-      <ul className="mt-4 space-y-2.5">
+      <div className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">{title}</div>
+      <ul className="mt-5 space-y-3">
         {items.map((i) => (
           <li key={i}>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
+            <a href="#" className="text-sm text-slate-400 transition-colors hover:text-white">
               {i}
             </a>
           </li>
