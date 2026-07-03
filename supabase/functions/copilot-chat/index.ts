@@ -24,10 +24,13 @@ serve(async (req) => {
       });
     }
 
+    const FRIENDLY_UNAVAILABLE =
+      "AI Copilot is temporarily unavailable. The OpenAI API key is missing or has exceeded its quota. Please check your OPENAI_API_KEY configuration.";
+
     const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "OPENAI_API_KEY not configured" }), {
-        status: 500,
+      return new Response(JSON.stringify({ reply: FRIENDLY_UNAVAILABLE, unavailable: true }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -61,10 +64,11 @@ Suggest concrete next steps. Use data-driven language. Never be generic.`;
       const text = await response.text();
       console.error("OpenAI error", response.status, text);
       return new Response(
-        JSON.stringify({ error: `OpenAI ${response.status}`, detail: text.slice(0, 500) }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({ reply: FRIENDLY_UNAVAILABLE, unavailable: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+
 
     const data = await response.json();
     const reply = data.choices?.[0]?.message?.content ?? "I could not process that request.";
@@ -74,9 +78,14 @@ Suggest concrete next steps. Use data-driven language. Never be generic.`;
     });
   } catch (err) {
     console.error("copilot-chat error", err);
-    return new Response(JSON.stringify({ error: (err as Error).message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        reply:
+          "AI Copilot hit an unexpected error. Please try again in a moment.",
+        unavailable: true,
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   }
 });
+
