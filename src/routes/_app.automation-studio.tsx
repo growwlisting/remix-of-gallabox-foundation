@@ -491,8 +491,10 @@ function AutomationStudioPage() {
               workflow={w}
               onRun={handleRunWorkflow}
               isRunning={runningWorkflow === w.name}
+              lastRun={lastRuns[w.id] ?? null}
             />
           ))}
+
         </div>
       </section>
 
