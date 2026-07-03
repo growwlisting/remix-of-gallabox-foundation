@@ -66,11 +66,11 @@ type ColumnMeta = {
 };
 
 const COLUMN_ORDER: ColumnMeta[] = [
-  { id: "prospecting", name: "Prospecting", bar: "bg-indigo-500", accent: "text-indigo-600" },
-  { id: "qualified", name: "Qualified", bar: "bg-blue-500", accent: "text-blue-600" },
-  { id: "proposal", name: "Proposal", bar: "bg-amber-500", accent: "text-amber-600" },
-  { id: "negotiation", name: "Negotiation", bar: "bg-orange-500", accent: "text-orange-600" },
-  { id: "closed_won", name: "Closed Won", bar: "bg-emerald-500", accent: "text-emerald-600" },
+  { id: "prospecting", name: "Prospecting", bar: "bg-gradient-to-r from-primary to-brand-end", accent: "text-primary" },
+  { id: "qualified", name: "Qualified", bar: "bg-gradient-to-r from-primary to-brand-end", accent: "text-primary" },
+  { id: "proposal", name: "Proposal", bar: "bg-gradient-to-r from-primary to-brand-end", accent: "text-primary" },
+  { id: "negotiation", name: "Negotiation", bar: "bg-gradient-to-r from-primary to-brand-end", accent: "text-primary" },
+  { id: "closed_won", name: "Closed Won", bar: "bg-gradient-to-r from-success to-primary", accent: "text-success" },
 ];
 
 const STAGE_LABEL: Record<string, string> = {
