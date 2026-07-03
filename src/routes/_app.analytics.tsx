@@ -190,10 +190,30 @@ function AnalyticsPage() {
 
       <Tabs defaultValue="overview">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="outreach">Outreach</TabsTrigger>
-          <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
-          <TabsTrigger value="ai">AI Performance</TabsTrigger>
+          <TabsTrigger
+            value="overview"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6C63FF] data-[state=active]:to-[#8B5CF6] data-[state=active]:text-white data-[state=active]:shadow"
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger
+            value="outreach"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6C63FF] data-[state=active]:to-[#8B5CF6] data-[state=active]:text-white data-[state=active]:shadow"
+          >
+            Outreach
+          </TabsTrigger>
+          <TabsTrigger
+            value="pipeline"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6C63FF] data-[state=active]:to-[#8B5CF6] data-[state=active]:text-white data-[state=active]:shadow"
+          >
+            Pipeline
+          </TabsTrigger>
+          <TabsTrigger
+            value="ai"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6C63FF] data-[state=active]:to-[#8B5CF6] data-[state=active]:text-white data-[state=active]:shadow"
+          >
+            AI Performance
+          </TabsTrigger>
         </TabsList>
 
         {/* OVERVIEW */}
