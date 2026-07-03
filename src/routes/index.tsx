@@ -247,7 +247,7 @@ function LandingPage() {
               <>
                 <Link
                   to="/login"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+                  className="inline-flex items-center rounded-lg border border-border bg-transparent px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
                 >
                   Sign In
                 </Link>
