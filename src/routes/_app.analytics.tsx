@@ -42,10 +42,10 @@ import { ArrowUpRight, Clock, Mail, MessageCircle, Calendar, Sparkles } from "lu
 const meta = getRouteMeta("/analytics")!;
 
 const KPIS = [
-  { label: "Total Emails Sent", value: "12,847", delta: "+18%", icon: Mail, tint: "text-indigo-600 bg-indigo-500/10" },
-  { label: "Avg Open Rate", value: "34%", delta: "+4%", icon: ArrowUpRight, tint: "text-blue-600 bg-blue-500/10" },
-  { label: "Reply Rate", value: "9.2%", delta: "+1.2%", icon: MessageCircle, tint: "text-emerald-600 bg-emerald-500/10" },
-  { label: "Meetings Booked", value: "147", delta: "+23%", icon: Calendar, tint: "text-violet-600 bg-violet-500/10" },
+  { label: "Total Emails Sent", value: "12,847", delta: "+18%", icon: Mail, tint: "bg-gradient-to-br from-[#EEF2FF] to-[#F5F3FF] text-[#6C63FF]" },
+  { label: "Avg Open Rate", value: "34%", delta: "+4%", icon: ArrowUpRight, tint: "bg-gradient-to-br from-[#EEF2FF] to-[#F5F3FF] text-[#6C63FF]" },
+  { label: "Reply Rate", value: "9.2%", delta: "+1.2%", icon: MessageCircle, tint: "bg-gradient-to-br from-[#EEF2FF] to-[#F5F3FF] text-[#6C63FF]" },
+  { label: "Meetings Booked", value: "147", delta: "+23%", icon: Calendar, tint: "bg-gradient-to-br from-[#EEF2FF] to-[#F5F3FF] text-[#6C63FF]" },
 ];
 
 const WEEKLY = Array.from({ length: 8 }).map((_, i) => {
