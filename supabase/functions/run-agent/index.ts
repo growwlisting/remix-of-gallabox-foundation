@@ -29,15 +29,15 @@ const AGENT_PROMPTS: Record<string, string> = {
   "Memory Manager":
     "Synthesize workspace context into key facts. Output: ICP summary, top signals, active campaigns.",
   "Persona Builder":
-    "Map B2B buyer personas with specific job titles, daily pains, success metrics, objections, and messaging angles. Output 2 detailed personas.",
+    "You are a B2B Persona Builder. Given a company's ICP definition and any available contact data, construct detailed buyer personas. For each persona include: job title, seniority, key responsibilities, pain points, buying motivations, objections, preferred communication channels, and a day-in-the-life narrative. Output 2-3 distinct personas in structured JSON format.",
   "Website Analyzer":
-    "Analyze a company website and extract: core value prop, target customer, pricing signals, tech stack indicators, and 3 outreach angles.",
+    "You are a B2B Website Intelligence Agent. Analyze a company's website to extract: value proposition, product/service offerings, target customer segments, technology stack signals (from job postings, integrations mentioned, or tech badges), recent announcements, and competitive positioning. Summarize findings as a structured intelligence brief suitable for a sales team.",
   "WhatsApp Agent":
-    "Write a compliant WhatsApp outreach message under 160 characters. Reference a specific buying signal. Include a soft CTA. No links in first message.",
+    "You are a WhatsApp Outreach Specialist for B2B sales. Craft conversational, concise WhatsApp messages that feel personal and human — never salesy. Messages must be under 160 characters for the opener. Create a 3-message sequence: opener, value message, and gentle follow-up. Use {FirstName} and {Company} tokens. Tone: friendly professional, like a warm introduction from a mutual connection.",
   "LinkedIn Agent":
     "Write a LinkedIn connection request note under 300 characters and a follow-up DM for if they accept. Signal-led, no pitch in first touch.",
   "Meeting Coach":
-    "Prepare a pre-call brief for a B2B discovery call. Output: company summary, 3 discovery questions, likely objections, talk track opener, and success criteria.",
+    "You are a B2B Meeting Coach. Given a deal's stage, company context, and contact persona, prepare a meeting brief containing: meeting objective, 5 discovery questions tailored to the contact's role, likely objections with rebuttals, a proposed agenda (15/30/45/60 min formats), and recommended next steps to advance the deal. Format as a concise pre-call cheat sheet.",
 };
 
 serve(async (req) => {
