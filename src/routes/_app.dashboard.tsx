@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Area,
   AreaChart,
@@ -49,6 +49,7 @@ type Stat = {
   change: number;
   icon: LucideIcon;
   iconClass: string;
+  href: "/lead-intelligence" | "/crm" | "/campaign-studio" | "/analytics";
 };
 
 // Live KPIs are computed inside DashboardPage from real workspace data.
@@ -91,27 +92,31 @@ const INSIGHTS: {
   description: string;
   accent: string;
   iconClass: string;
+  href: "/lead-intelligence" | "/market-intelligence" | "/analytics" | "/outreach-studio";
 }[] = [
   {
     icon: Flame,
-    title: "18 deals stalled >14 days — re-engage now",
-    description: "AI drafted personalized nudges ready to send from Outreach Studio.",
+    title: "Stalled deals need re-engagement",
+    description: "Open the CRM to see which Indian D2C accounts have gone quiet for 14+ days.",
     accent: "border-l-rose-500",
     iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
+    href: "/outreach-studio",
   },
   {
     icon: Target,
-    title: "Top ICP match: SaaS companies 50–200 employees",
-    description: "142 new accounts detected this week that mirror your best customers.",
+    title: "Top ICP match: D2C brands, 50–500 employees",
+    description: "New accounts detected this week that mirror Gallabox India's best fit.",
     accent: "border-l-amber-500",
     iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
+    href: "/lead-intelligence",
   },
   {
     icon: Sparkles,
-    title: "Email open rate up 31% this week",
-    description: "Subject line variant B is outperforming — promote to primary sequence?",
+    title: "WhatsApp reply rate 3× email — lean in",
+    description: "Promote WhatsApp-first sequences in Outreach Studio for higher engagement.",
     accent: "border-l-emerald-500",
     iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
+    href: "/analytics",
   },
 ];
 
@@ -120,31 +125,33 @@ function StatCard({ stat }: { stat: Stat }) {
   const positive = stat.change >= 0;
   const TrendIcon = positive ? ArrowUpRight : ArrowDownRight;
   return (
-    <Card className="transition-shadow hover:shadow-lg">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-          <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", stat.iconClass)}>
-            <Icon className="h-4 w-4" />
+    <Link to={stat.href} className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl">
+      <Card className="transition-all hover:shadow-lg hover:-translate-y-0.5">
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between">
+            <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+            <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", stat.iconClass)}>
+              <Icon className="h-4 w-4" />
+            </div>
           </div>
-        </div>
-        <p className="mt-4 text-3xl font-bold tracking-tight text-foreground">{stat.value}</p>
-        <div className="mt-3 flex items-center gap-2">
-          <span
-            className={cn(
-              "inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-semibold",
-              positive
-                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                : "bg-rose-500/10 text-rose-600 dark:text-rose-400",
-            )}
-          >
-            <TrendIcon className="h-3 w-3" />
-            {Math.abs(stat.change)}%
-          </span>
-          <span className="text-xs text-muted-foreground">vs last month</span>
-        </div>
-      </CardContent>
-    </Card>
+          <p className="mt-4 text-3xl font-bold tracking-tight text-foreground">{stat.value}</p>
+          <div className="mt-3 flex items-center gap-2">
+            <span
+              className={cn(
+                "inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-semibold",
+                positive
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  : "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+              )}
+            >
+              <TrendIcon className="h-3 w-3" />
+              {Math.abs(stat.change)}%
+            </span>
+            <span className="text-xs text-muted-foreground group-hover:text-primary">View →</span>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
