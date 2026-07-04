@@ -410,16 +410,22 @@ function InviteMembersDialog() {
 }
 
 function WorkspacesPage() {
+  const queryClient = useQueryClient();
   const { data: profile } = useProfile();
   const { data: rows = [] } = useQuery({
     queryKey: ["all-workspaces"],
-    queryFn: async (): Promise<Array<{ id: string; name: string; description: string | null; member_count: number | null }>> => {
-      const { data, error } = await supabase
+    queryFn: async (): Promise<Array<{ id: string; name: string; actual_members: number }>> => {
+      const { data: ws, error } = await supabase
         .from("workspaces")
-        .select("id, name, description, member_count")
+        .select("id, name")
         .order("name");
       if (error) throw error;
-      return data ?? [];
+      const { data: mems } = await supabase.from("profiles").select("workspace_id");
+      const counts = new Map<string, number>();
+      (mems ?? []).forEach((m) => {
+        if (m.workspace_id) counts.set(m.workspace_id, (counts.get(m.workspace_id) ?? 0) + 1);
+      });
+      return (ws ?? []).map((w) => ({ ...w, actual_members: counts.get(w.id) ?? 0 }));
     },
   });
 
@@ -427,15 +433,23 @@ function WorkspacesPage() {
     id: w.id,
     name: w.name,
     slug: w.name.toLowerCase().replace(/\s+/g, "-"),
-    members: w.member_count ?? 1,
+    members: w.actual_members,
     role: "Owner",
     active: profile?.workspace_id === w.id,
     icon: Building2,
     color: "bg-indigo-500",
   }));
 
-  const handleActivate = (_id: string) => {
-    // Single-workspace mode for now — switching lives with a future auth-scoped update.
+  const handleActivate = async (id: string) => {
+    if (!profile?.id) return;
+    const { error } = await supabase.from("profiles").update({ workspace_id: id }).eq("id", profile.id);
+    if (error) {
+      toast.error(`Could not switch: ${error.message}`);
+      return;
+    }
+    toast.success("Switched workspace");
+    queryClient.invalidateQueries({ queryKey: ["profile"] });
+    queryClient.invalidateQueries({ queryKey: ["all-workspaces"] });
   };
 
   const handleCreate = async (name: string) => {
@@ -456,6 +470,7 @@ function WorkspacesPage() {
       return;
     }
     toast.success(`Workspace "${name}" created`);
+    queryClient.invalidateQueries({ queryKey: ["all-workspaces"] });
   };
 
 
