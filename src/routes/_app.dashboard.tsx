@@ -298,10 +298,11 @@ function AiInsights() {
         {INSIGHTS.map((insight, i) => {
           const Icon = insight.icon;
           return (
-            <div
+            <Link
               key={i}
+              to={insight.href}
               className={cn(
-                "flex gap-3 rounded-lg border border-border border-l-4 bg-card p-4 transition-shadow hover:shadow-sm",
+                "flex gap-3 rounded-lg border border-border border-l-4 bg-card p-4 transition-all hover:shadow-sm hover:-translate-y-0.5",
                 insight.accent,
               )}
             >
@@ -312,7 +313,7 @@ function AiInsights() {
                 <p className="text-sm font-semibold leading-snug text-foreground">{insight.title}</p>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{insight.description}</p>
               </div>
-            </div>
+            </Link>
           );
         })}
       </CardContent>
