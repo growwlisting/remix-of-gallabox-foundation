@@ -335,13 +335,13 @@ function DashboardPage() {
 
   const liveStats: Stat[] = [
     { label: "Pipeline Value", value: fmt(pipelineValue), change: 0, icon: TrendingUp,
-      iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary" },
+      iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary", href: "/crm" },
     { label: "Active Leads", value: String(contacts.length), change: 0, icon: Users,
-      iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary" },
+      iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary", href: "/lead-intelligence" },
     { label: "Meetings Booked", value: String(meetingsBooked), change: 0, icon: Calendar,
-      iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary" },
+      iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary", href: "/campaign-studio" },
     { label: "Won This Month", value: fmt(wonThisMonth), change: 0, icon: DollarSign,
-      iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary" },
+      iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary", href: "/analytics" },
   ];
 
   return (
