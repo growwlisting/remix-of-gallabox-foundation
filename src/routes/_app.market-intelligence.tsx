@@ -604,6 +604,7 @@ function MarketIntelligencePage() {
                   <TableCell className="text-right">
                     <Button
                       size="sm"
+                      onClick={() => handleRowAction(row)}
                       className={cn("h-7 px-3 text-xs", actionButton(row.action))}
                     >
                       {row.action === "Outreach" && <Send className="mr-1 h-3 w-3" />}
