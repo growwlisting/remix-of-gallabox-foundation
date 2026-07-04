@@ -332,6 +332,88 @@ export type Database = {
         }
         Relationships: []
       }
+      sequence_steps: {
+        Row: {
+          body: string | null
+          created_at: string
+          day_offset: number
+          id: string
+          label: string
+          sequence_id: string
+          step_order: number
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          day_offset?: number
+          id?: string
+          label: string
+          sequence_id: string
+          step_order: number
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          day_offset?: number
+          id?: string
+          label?: string
+          sequence_id?: string
+          step_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sequence_steps_sequence_id_fkey"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "sequences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sequences: {
+        Row: {
+          body: string | null
+          channel: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          subject: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          body?: string | null
+          channel: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          subject?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          body?: string | null
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          subject?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sequences_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_invites: {
         Row: {
           created_at: string
@@ -379,6 +461,8 @@ export type Database = {
           member_count: number
           name: string
           org_id: string | null
+          sender_email: string | null
+          sender_name: string | null
         }
         Insert: {
           created_at?: string
@@ -388,6 +472,8 @@ export type Database = {
           member_count?: number
           name: string
           org_id?: string | null
+          sender_email?: string | null
+          sender_name?: string | null
         }
         Update: {
           created_at?: string
@@ -397,6 +483,8 @@ export type Database = {
           member_count?: number
           name?: string
           org_id?: string | null
+          sender_email?: string | null
+          sender_name?: string | null
         }
         Relationships: [
           {
