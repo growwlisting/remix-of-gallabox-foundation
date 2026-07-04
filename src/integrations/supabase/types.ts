@@ -320,6 +320,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          icp: Json
           id: string
           member_count: number
           name: string
@@ -328,6 +329,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          icp?: Json
           id?: string
           member_count?: number
           name: string
@@ -336,6 +338,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          icp?: Json
           id?: string
           member_count?: number
           name?: string

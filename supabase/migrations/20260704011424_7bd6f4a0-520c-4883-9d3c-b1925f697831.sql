@@ -1,0 +1,1 @@
+ALTER TABLE public.workspaces ADD COLUMN IF NOT EXISTS icp jsonb NOT NULL DEFAULT '{"industries":"D2C · EdTech · Fintech (India)","sizes":"50–500 employees","stage":"Series A–D, mid-market","personas":"Head of Growth / CMO / Founder","pain":"Fragmented WhatsApp + email + CRM. Low reply rates. Manual routing."}'::jsonb;
