@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/use-auth";
 import {
   Building2,
   Check,
@@ -49,38 +52,7 @@ type Workspace = {
   color: string;
 };
 
-const INITIAL_WORKSPACES: Workspace[] = [
-  {
-    id: "1",
-    name: "Gallabox HQ",
-    slug: "gallabox-hq",
-    members: 12,
-    role: "Owner",
-    active: true,
-    icon: Building2,
-    color: "bg-indigo-500",
-  },
-  {
-    id: "2",
-    name: "North America",
-    slug: "gallabox-na",
-    members: 7,
-    role: "Admin",
-    active: false,
-    icon: FolderKanban,
-    color: "bg-emerald-500",
-  },
-  {
-    id: "3",
-    name: "EMEA Expansion",
-    slug: "gallabox-emea",
-    members: 4,
-    role: "Member",
-    active: false,
-    icon: FolderKanban,
-    color: "bg-amber-500",
-  },
-];
+// Workspaces are fetched live from the database — no mock list.
 
 export const Route = createFileRoute("/_app/workspaces")({
   head: () => ({
@@ -220,26 +192,47 @@ function CreateWorkspaceDialog({ onCreate }: { onCreate: (name: string) => void 
 }
 
 function WorkspacesPage() {
-  const [workspaces, setWorkspaces] = useState(INITIAL_WORKSPACES);
+  const { data: profile } = useProfile();
+  const { data: rows = [] } = useQuery({
+    queryKey: ["all-workspaces"],
+    queryFn: async (): Promise<Array<{ id: string; name: string; description: string | null; member_count: number | null }>> => {
+      const { data, error } = await supabase
+        .from("workspaces")
+        .select("id, name, description, member_count")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
-  const handleActivate = (id: string) => {
-    setWorkspaces((prev) => prev.map((w) => ({ ...w, active: w.id === id })));
+  const workspaces: Workspace[] = rows.map((w) => ({
+    id: w.id,
+    name: w.name,
+    slug: w.name.toLowerCase().replace(/\s+/g, "-"),
+    members: w.member_count ?? 1,
+    role: "Owner",
+    active: profile?.workspace_id === w.id,
+    icon: Building2,
+    color: "bg-indigo-500",
+  }));
+
+  const handleActivate = (_id: string) => {
+    // Single-workspace mode for now — switching lives with a future auth-scoped update.
   };
 
-  const handleCreate = (name: string) => {
-    const slug = name.toLowerCase().replace(/\s+/g, "-");
-    const newWorkspace: Workspace = {
-      id: crypto.randomUUID(),
-      name,
-      slug,
-      members: 1,
-      role: "Owner",
-      active: false,
-      icon: FolderKanban,
-      color: "bg-violet-500",
-    };
-    setWorkspaces((prev) => [...prev, newWorkspace]);
+  const handleCreate = async (name: string) => {
+    // Create a fresh org + workspace pair in the same org group.
+    const { data: org, error: oErr } = await supabase
+      .from("organizations")
+      .insert({ name, plan: "enterprise" })
+      .select("id")
+      .single();
+    if (oErr || !org) return;
+    await supabase
+      .from("workspaces")
+      .insert({ name, description: `${name} workspace`, org_id: org.id, member_count: 1 });
   };
+
 
   return (
     <div className="space-y-8">

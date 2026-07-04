@@ -29,7 +29,7 @@ import { getRouteMeta } from "@/lib/route-meta";
 import { cn } from "@/lib/utils";
 import { withLoading } from "@/components/states/page-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAITasks, relTime } from "@/hooks/use-growth-data";
+import { useAITasks, useContacts, useDeals, useCampaigns, relTime } from "@/hooks/use-growth-data";
 
 const meta = getRouteMeta("/dashboard")!;
 
@@ -51,36 +51,7 @@ type Stat = {
   iconClass: string;
 };
 
-const STATS: Stat[] = [
-  {
-    label: "Pipeline Value",
-    value: "$2.4M",
-    change: 12,
-    icon: TrendingUp,
-    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
-  },
-  {
-    label: "Active Leads",
-    value: "1,284",
-    change: 8,
-    icon: Users,
-    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
-  },
-  {
-    label: "Meetings Booked",
-    value: "47",
-    change: 23,
-    icon: Calendar,
-    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
-  },
-  {
-    label: "Won This Month",
-    value: "$340K",
-    change: 5,
-    icon: DollarSign,
-    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
-  },
-];
+// Live KPIs are computed inside DashboardPage from real workspace data.
 
 const PIPELINE_DATA = [
   { month: "Jan", created: 320, closed: 140 },
@@ -343,11 +314,34 @@ function AiInsights() {
 }
 
 function DashboardPage() {
+  const { data: contacts = [] } = useContacts();
+  const { data: deals = [] } = useDeals();
+  const { data: campaigns = [] } = useCampaigns();
+
+  const pipelineValue = deals.reduce((s, d) => s + (Number(d.value) || 0), 0);
+  const wonThisMonth = deals
+    .filter((d) => d.stage === "closed_won")
+    .reduce((s, d) => s + (Number(d.value) || 0), 0);
+  const meetingsBooked = campaigns.reduce((s, c) => s + (c.meetings_count || 0), 0);
+  const fmt = (n: number) =>
+    n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` : n >= 1_000 ? `$${Math.round(n / 1_000)}K` : `$${n}`;
+
+  const liveStats: Stat[] = [
+    { label: "Pipeline Value", value: fmt(pipelineValue), change: 0, icon: TrendingUp,
+      iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary" },
+    { label: "Active Leads", value: String(contacts.length), change: 0, icon: Users,
+      iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary" },
+    { label: "Meetings Booked", value: String(meetingsBooked), change: 0, icon: Calendar,
+      iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary" },
+    { label: "Won This Month", value: fmt(wonThisMonth), change: 0, icon: DollarSign,
+      iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary" },
+  ];
+
   return (
     <>
       <PageHeader eyebrow="Overview" title={meta.label} description={meta.description} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {STATS.map((stat) => (
+        {liveStats.map((stat) => (
           <StatCard key={stat.label} stat={stat} />
         ))}
       </div>
@@ -359,3 +353,4 @@ function DashboardPage() {
     </>
   );
 }
+
