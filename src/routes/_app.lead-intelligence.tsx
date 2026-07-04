@@ -255,7 +255,7 @@ function LeadIntelligencePage() {
         </Button>
       </div>
 
-      {/* Table + Detail panel */}
+      {/* Table */}
       {isLoading ? (
         <div className="mt-6"><PageSkeleton variant="table" /></div>
       ) : leads.length === 0 ? (
@@ -265,211 +265,255 @@ function LeadIntelligencePage() {
           description="Import leads or find new ICP matches to get started."
         />
       ) : (
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="rounded-xl border border-border bg-card">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-10 pl-4">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-10 pl-4">
+                  <Checkbox />
+                </TableHead>
+                <TableHead>Lead</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Score</TableHead>
+                <TableHead className="min-w-[220px]">Signals</TableHead>
+                <TableHead>Stage</TableHead>
+                <TableHead className="whitespace-nowrap">Last Activity</TableHead>
+                <TableHead className="text-right pr-4">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {leads.map((lead) => (
+                <TableRow
+                  key={lead.id}
+                  onClick={() => setSelectedId(lead.id)}
+                  className={cn(
+                    "cursor-pointer",
+                    lead.id === selectedId && "bg-muted/50",
+                  )}
+                >
+                  <TableCell className="pl-4" onClick={(e) => e.stopPropagation()}>
                     <Checkbox />
-                  </TableHead>
-                  <TableHead>Lead</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Score</TableHead>
-                  <TableHead>Signals</TableHead>
-                  <TableHead>Stage</TableHead>
-                  <TableHead>Last Activity</TableHead>
-                  <TableHead className="text-right pr-4">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {leads.map((lead) => (
-                  <TableRow
-                    key={lead.id}
-                    onClick={() => setSelectedId(lead.id)}
-                    className={cn(
-                      "cursor-pointer",
-                      lead.id === selected?.id && "bg-muted/50",
-                    )}
-                  >
-                    <TableCell className="pl-4" onClick={(e) => e.stopPropagation()}>
-                      <Checkbox />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-xs font-medium text-white">
-                            {initials(lead.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-medium text-foreground">
-                            {lead.name}
-                          </div>
-                          <div className="truncate text-xs text-muted-foreground">
-                            {lead.title}
-                          </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-xs font-medium text-white">
+                          {initials(lead.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-medium text-foreground">
+                          {lead.name}
+                        </div>
+                        <div className="truncate text-xs text-muted-foreground">
+                          {lead.title}
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted">
-                          <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        </div>
-                        <span className="text-sm text-foreground">{lead.company}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted">
+                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={cn(
-                          "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold",
-                          scoreTone(lead.score),
-                        )}
-                      >
-                        {lead.score >= 80 && <Flame className="h-3 w-3" />}
-                        {lead.score}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {lead.signals.map((s) => (
-                          <span
-                            key={s.label}
-                            className={cn(
-                              "rounded-md border px-1.5 py-0.5 text-[11px] font-medium",
-                              SIGNAL_TONE[s.tone],
-                            )}
-                          >
-                            {s.label}
-                          </span>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={cn("font-medium", STAGE_TONE[lead.stage])}
-                      >
-                        {lead.stage}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {lead.lastActivity}
-                    </TableCell>
-                    <TableCell
-                      className="pr-4 text-right"
-                      onClick={(e) => e.stopPropagation()}
+                      <span className="truncate text-sm text-foreground">{lead.company}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold",
+                        scoreTone(lead.score),
+                      )}
                     >
-                      <div className="flex items-center justify-end gap-1">
-                        <Button size="icon" variant="ghost" title="Research">
-                          <Search className="h-4 w-4" />
-                        </Button>
-                        <Button size="icon" variant="ghost" title="Outreach">
-                          <Send className="h-4 w-4" />
-                        </Button>
-                        <Button size="icon" variant="ghost" title="Add to campaign">
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {selected && <LeadDetailPanel lead={selected} />}
+                      {lead.score >= 80 && <Flame className="h-3 w-3" />}
+                      {lead.score}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {lead.signals.slice(0, 2).map((s) => (
+                        <span
+                          key={s.label}
+                          className={cn(
+                            "rounded-md border px-1.5 py-0.5 text-[11px] font-medium",
+                            SIGNAL_TONE[s.tone],
+                          )}
+                        >
+                          {s.label}
+                        </span>
+                      ))}
+                      {lead.signals.length > 2 && (
+                        <span className="rounded-md border border-border bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                          +{lead.signals.length - 2}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={cn("font-medium", STAGE_TONE[lead.stage])}
+                    >
+                      {lead.stage}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                    {lead.lastActivity}
+                  </TableCell>
+                  <TableCell
+                    className="pr-4 text-right"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      <Button size="icon" variant="ghost" title="Research" onClick={() => setSelectedId(lead.id)}>
+                        <Search className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" title="Outreach">
+                        <Send className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" title="Add to campaign">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
+
+      <Sheet open={!!selectedId} onOpenChange={(open) => !open && setSelectedId(null)}>
+        <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-md">
+          {selected && <LeadDetailPanel lead={selected} />}
+        </SheetContent>
+      </Sheet>
     </>
   );
 }
 
+// Deterministic per-lead pseudo-metric derived from lead id + base score.
+function leadHash(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return h;
+}
+function deriveBreakdown(lead: Lead) {
+  const h = leadHash(lead.id);
+  const base = lead.score;
+  const jitter = (offset: number, spread: number) =>
+    Math.max(10, Math.min(99, base + (((h >> offset) & 0xff) % spread) - spread / 2));
+  const hasSignal = (tone: SignalTone) => lead.signals.some((s) => s.tone === tone);
+  return [
+    { label: "Intent", value: hasSignal("intent") ? Math.min(99, base + 6) : jitter(0, 22), icon: TrendingUp },
+    { label: "Fit", value: jitter(8, 18), icon: Users },
+    { label: "Timing", value: hasSignal("funding") || hasSignal("hiring") ? Math.min(99, base + 4) : jitter(16, 26), icon: Zap },
+    { label: "Engagement", value: jitter(24, 30), icon: Flame },
+  ];
+}
+
+function deriveBuyingSignals(lead: Lead) {
+  const out: { icon: typeof TrendingUp; text: string; tone: string }[] = [];
+  for (const s of lead.signals) {
+    if (s.tone === "intent")
+      out.push({ icon: TrendingUp, text: `${s.label} — high buying intent detected`, tone: "text-indigo-500" });
+    else if (s.tone === "hiring")
+      out.push({ icon: Users, text: `${s.label} — team expansion in progress`, tone: "text-emerald-500" });
+    else if (s.tone === "funding")
+      out.push({ icon: DollarSign, text: `${s.label} — fresh budget available`, tone: "text-amber-500" });
+    else if (s.tone === "tech")
+      out.push({ icon: Zap, text: `${s.label} — compatible stack`, tone: "text-sky-500" });
+  }
+  if (out.length === 0) {
+    out.push({ icon: TrendingUp, text: `No strong signals yet for ${lead.company}`, tone: "text-muted-foreground" });
+  }
+  return out;
+}
 
 function LeadDetailPanel({ lead }: { lead: Lead }) {
-  const breakdown = [
-    { label: "Intent", value: 92, icon: TrendingUp },
-    { label: "Fit", value: 87, icon: Users },
-    { label: "Timing", value: 78, icon: Zap },
-    { label: "Engagement", value: 65, icon: Flame },
-  ];
-
-  const buyingSignals = [
-    { icon: TrendingUp, text: "Visited pricing page 3 times this week", tone: "text-indigo-500" },
-    { icon: Users, text: "Hired 2 SDRs in the last 30 days", tone: "text-emerald-500" },
-    { icon: DollarSign, text: "Increased marketing budget 40% QoQ", tone: "text-amber-500" },
-    { icon: Zap, text: "Uses HubSpot, Segment, and Slack", tone: "text-sky-500" },
-  ];
+  const breakdown = deriveBreakdown(lead);
+  const buyingSignals = deriveBuyingSignals(lead);
 
   return (
-    <aside className="rounded-xl border border-border bg-card p-5 lg:sticky lg:top-4 lg:h-fit">
-      <div className="flex items-start gap-3">
-        <Avatar className="h-12 w-12">
-          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-semibold text-white">
-            {initials(lead.name)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="truncate text-base font-semibold text-foreground">
-              {lead.name}
-            </h3>
-            <Button size="icon" variant="ghost" className="h-7 w-7">
-              <Linkedin className="h-4 w-4 text-[#0A66C2]" />
-            </Button>
-          </div>
-          <p className="truncate text-sm text-muted-foreground">
-            {lead.title} · {lead.company}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <div className="mb-3 flex items-center justify-between">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            AI Score breakdown
-          </h4>
-          <span
-            className={cn(
-              "rounded-full border px-2 py-0.5 text-xs font-semibold",
-              scoreTone(lead.score),
-            )}
-          >
-            {lead.score}
-          </span>
-        </div>
-        <div className="space-y-3">
-          {breakdown.map((b) => (
-            <div key={b.label}>
-              <div className="mb-1 flex items-center justify-between text-xs">
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <b.icon className="h-3.5 w-3.5" />
-                  {b.label}
-                </span>
-                <span className="font-medium text-foreground">{b.value}</span>
-              </div>
-              <Progress value={b.value} className="h-1.5" />
+    <div className="flex h-full flex-col">
+      <SheetHeader className="border-b border-border p-5">
+        <SheetTitle className="sr-only">Lead details for {lead.name}</SheetTitle>
+        <div className="flex items-start gap-3">
+          <Avatar className="h-12 w-12">
+            <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-semibold text-white">
+              {initials(lead.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1 text-left">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="truncate text-base font-semibold text-foreground">
+                {lead.name}
+              </h3>
+              <Button size="icon" variant="ghost" className="h-7 w-7">
+                <Linkedin className="h-4 w-4 text-[#0A66C2]" />
+              </Button>
             </div>
-          ))}
+            <p className="truncate text-sm text-muted-foreground">
+              {lead.title} · {lead.company}
+            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <Badge variant="outline" className={cn("font-medium", STAGE_TONE[lead.stage])}>
+                {lead.stage}
+              </Badge>
+              <span className="text-xs text-muted-foreground">Last activity {lead.lastActivity}</span>
+            </div>
+          </div>
+        </div>
+      </SheetHeader>
+
+      <div className="flex-1 space-y-6 p-5">
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              AI Score breakdown
+            </h4>
+            <span
+              className={cn(
+                "rounded-full border px-2 py-0.5 text-xs font-semibold",
+                scoreTone(lead.score),
+              )}
+            >
+              {lead.score}
+            </span>
+          </div>
+          <div className="space-y-3">
+            {breakdown.map((b) => (
+              <div key={b.label}>
+                <div className="mb-1 flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <b.icon className="h-3.5 w-3.5" />
+                    {b.label}
+                  </span>
+                  <span className="font-medium text-foreground">{b.value}</span>
+                </div>
+                <Progress value={b.value} className="h-1.5" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Buying signals
+          </h4>
+          <ul className="space-y-2.5">
+            {buyingSignals.map((s, i) => (
+              <li key={`${s.text}-${i}`} className="flex items-start gap-2 text-sm">
+                <s.icon className={cn("mt-0.5 h-4 w-4 shrink-0", s.tone)} />
+                <span className="text-foreground/90">{s.text}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
-      <div className="mt-6">
-        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Buying signals
-        </h4>
-        <ul className="space-y-2.5">
-          {buyingSignals.map((s) => (
-            <li key={s.text} className="flex items-start gap-2 text-sm">
-              <s.icon className={cn("mt-0.5 h-4 w-4 shrink-0", s.tone)} />
-              <span className="text-foreground/90">{s.text}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mt-6 space-y-2">
+      <div className="space-y-2 border-t border-border p-5">
         <Button className="w-full bg-indigo-600 text-white hover:bg-indigo-600/90">
           <Send className="h-4 w-4" />
           Draft Outreach
@@ -479,6 +523,7 @@ function LeadDetailPanel({ lead }: { lead: Lead }) {
           Add to Campaign
         </Button>
       </div>
-    </aside>
+    </div>
   );
 }
+
