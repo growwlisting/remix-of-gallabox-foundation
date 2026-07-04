@@ -278,6 +278,53 @@ export type Database = {
           },
         ]
       }
+      knowledge_documents: {
+        Row: {
+          agent_count: number
+          category: Database["public"]["Enums"]["knowledge_category"]
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          preview: string
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          agent_count?: number
+          category: Database["public"]["Enums"]["knowledge_category"]
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          preview?: string
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          agent_count?: number
+          category?: Database["public"]["Enums"]["knowledge_category"]
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          preview?: string
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_documents_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_activities: {
         Row: {
           action: string
@@ -623,7 +670,12 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      knowledge_category:
+        | "Product Brief"
+        | "ICP & Personas"
+        | "Prompt Library"
+        | "Email Templates"
+        | "AI Rules"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -750,6 +802,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      knowledge_category: [
+        "Product Brief",
+        "ICP & Personas",
+        "Prompt Library",
+        "Email Templates",
+        "AI Rules",
+      ],
+    },
   },
 } as const
