@@ -25,9 +25,9 @@ serve(async (req) => {
     }
 
     const FRIENDLY_UNAVAILABLE =
-      "AI Copilot is temporarily unavailable. The OpenAI API key is missing or has exceeded its quota. Please check your OPENAI_API_KEY configuration.";
+      "AI Copilot is temporarily unavailable. Please try again in a moment.";
 
-    const apiKey = Deno.env.get("OPENAI_API_KEY");
+    const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
       return new Response(JSON.stringify({ reply: FRIENDLY_UNAVAILABLE, unavailable: true }), {
         status: 200,
@@ -42,33 +42,43 @@ Current page context: ${context ?? "unknown"}
 Be concise, specific, and actionable. Always respond in 2-4 sentences max unless asked for more.
 Suggest concrete next steps. Use data-driven language. Never be generic.`;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        "Lovable-API-Key": apiKey,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
           ...(Array.isArray(history) ? history : []),
           { role: "user", content: message },
         ],
-        max_tokens: 300,
-        temperature: 0.7,
+        max_tokens: 400,
       }),
     });
 
     if (!response.ok) {
       const text = await response.text();
-      console.error("OpenAI error", response.status, text);
+      console.error("Gateway error", response.status, text);
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ reply: "Rate limit reached. Please try again shortly.", unavailable: true }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ reply: "AI credits exhausted for this workspace.", unavailable: true }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
       return new Response(
         JSON.stringify({ reply: FRIENDLY_UNAVAILABLE, unavailable: true }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-
 
     const data = await response.json();
     const reply = data.choices?.[0]?.message?.content ?? "I could not process that request.";
@@ -80,12 +90,10 @@ Suggest concrete next steps. Use data-driven language. Never be generic.`;
     console.error("copilot-chat error", err);
     return new Response(
       JSON.stringify({
-        reply:
-          "AI Copilot hit an unexpected error. Please try again in a moment.",
+        reply: "AI Copilot hit an unexpected error. Please try again in a moment.",
         unavailable: true,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
-
