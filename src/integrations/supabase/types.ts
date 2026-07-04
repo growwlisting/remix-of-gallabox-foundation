@@ -112,6 +112,7 @@ export type Database = {
           email: string | null
           first_name: string | null
           id: string
+          industry: string | null
           last_activity: string | null
           last_name: string | null
           lead_score: number
@@ -127,6 +128,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           id?: string
+          industry?: string | null
           last_activity?: string | null
           last_name?: string | null
           lead_score?: number
@@ -142,6 +144,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           id?: string
+          industry?: string | null
           last_activity?: string | null
           last_name?: string | null
           lead_score?: number
@@ -211,6 +214,57 @@ export type Database = {
           },
           {
             foreignKeyName: "deals_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_activities: {
+        Row: {
+          action: string
+          actor_name: string | null
+          actor_type: string
+          contact_id: string
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          workspace_id: string
+        }
+        Insert: {
+          action: string
+          actor_name?: string | null
+          actor_type?: string
+          contact_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          workspace_id: string
+        }
+        Update: {
+          action?: string
+          actor_name?: string | null
+          actor_type?: string
+          contact_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_activities_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_activities_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"

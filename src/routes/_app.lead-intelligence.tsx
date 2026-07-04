@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-auth";
@@ -16,6 +16,10 @@ import {
   Zap,
   Flame,
   Building2,
+  Bot,
+  User as UserIcon,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/states/page-header";
@@ -57,6 +61,22 @@ const meta = getRouteMeta("/lead-intelligence")!;
 type SignalTone = "intent" | "hiring" | "funding" | "tech";
 type LeadStage = "Hot" | "Warm" | "Cold" | "Nurture";
 
+const INDUSTRY_OPTIONS: { value: string; label: string }[] = [
+  { value: "real_estate", label: "Real Estate" },
+  { value: "education", label: "Education" },
+  { value: "travel", label: "Travel" },
+  { value: "healthcare", label: "Healthcare" },
+  { value: "ecommerce", label: "E-commerce" },
+  { value: "finance", label: "Finance" },
+  { value: "logistics", label: "Logistics" },
+  { value: "automotive", label: "Automotive" },
+  { value: "professional_services", label: "Professional Services" },
+];
+
+const INDUSTRY_LABEL: Record<string, string> = Object.fromEntries(
+  INDUSTRY_OPTIONS.map((i) => [i.value, i.label]),
+);
+
 type Lead = {
   id: string;
   name: string;
@@ -67,15 +87,39 @@ type Lead = {
   signals: { label: string; tone: SignalTone }[];
   stage: LeadStage;
   lastActivity: string;
+  industry: string;
 };
 
-function contactToLead(c: ContactRow): Lead {
+// Auto stage rule from score. Manual override always wins if set on the row.
+function autoStageFromScore(score: number): LeadStage {
+  if (score >= 80) return "Hot";
+  if (score >= 50) return "Warm";
+  return "Cold";
+}
+
+// Company → industry heuristic used only when contact.industry is empty.
+function guessIndustry(company: string): string {
+  const c = (company || "").toLowerCase();
+  if (/nobroker|magicbricks|housing|square ?yards|realty|estate/.test(c)) return "real_estate";
+  if (/byju|unacad|vedantu|physicswallah|upgrad|school|edtech|learn/.test(c)) return "education";
+  if (/makemytrip|goibibo|yatra|oyo|ixigo|cleartrip|travel/.test(c)) return "travel";
+  if (/practo|1mg|pharmeasy|apollo|medi|health|hospital/.test(c)) return "healthcare";
+  if (/mamaearth|boat|nykaa|meesho|zepto|flipkart|amazon|shop|commerce|d2c/.test(c)) return "ecommerce";
+  if (/razorpay|cred|zerodha|paytm|phonepe|bank|fintech|finance|capital/.test(c)) return "finance";
+  if (/delhivery|ecom ?express|shiprocket|logi|freight|shipping/.test(c)) return "logistics";
+  if (/tata motors|mahindra|ola electric|ather|auto|motor|vehicle/.test(c)) return "automotive";
+  if (/consult|advisor|law|legal|deloitte|kpmg|ey|pwc/.test(c)) return "professional_services";
+  return "professional_services";
+}
+
+function contactToLead(c: ContactRow & { industry?: string | null }): Lead {
   const name = [c.first_name, c.last_name].filter(Boolean).join(" ") || "Unknown";
   const domain = c.email?.split("@")[1] ?? "";
+  const industry = (c.industry && c.industry.trim()) || guessIndustry(c.company ?? "");
   const rawStage = c.stage as LeadStage;
   const stage: LeadStage = (["Hot", "Warm", "Cold", "Nurture"] as LeadStage[]).includes(rawStage)
     ? rawStage
-    : "Cold";
+    : autoStageFromScore(c.lead_score);
   return {
     id: c.id,
     name,
@@ -86,16 +130,14 @@ function contactToLead(c: ContactRow): Lead {
     signals: c.signals,
     stage,
     lastActivity: relTime(c.last_activity),
+    industry,
   };
 }
 
 const SIGNAL_TONE: Record<SignalTone, string> = {
-  intent:
-    "border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300",
-  hiring:
-    "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
-  funding:
-    "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+  intent: "border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300",
+  hiring: "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+  funding: "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300",
   tech: "border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-300",
 };
 
@@ -103,24 +145,17 @@ const STAGE_TONE: Record<Lead["stage"], string> = {
   Hot: "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-300",
   Warm: "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-300",
   Cold: "border-slate-400/30 bg-slate-400/10 text-slate-600 dark:text-slate-300",
-  Nurture:
-    "border-violet-500/30 bg-violet-500/10 text-violet-600 dark:text-violet-300",
+  Nurture: "border-violet-500/30 bg-violet-500/10 text-violet-600 dark:text-violet-300",
 };
 
 function scoreTone(score: number) {
-  if (score >= 80)
-    return "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-300";
-  if (score >= 50)
-    return "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-300";
+  if (score >= 80) return "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-300";
+  if (score >= 50) return "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-300";
   return "border-slate-400/30 bg-slate-400/10 text-slate-600 dark:text-slate-300";
 }
 
 function initials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("");
+  return name.split(" ").map((n) => n[0]).slice(0, 2).join("");
 }
 
 export const Route = createFileRoute("/_app/lead-intelligence")({
@@ -133,46 +168,83 @@ export const Route = createFileRoute("/_app/lead-intelligence")({
   component: withLoading(LeadIntelligencePage, "table"),
 });
 
+type ActivityRow = {
+  id: string;
+  actor_type: string;
+  actor_name: string | null;
+  action: string;
+  description: string | null;
+  created_at: string;
+};
+
+async function logActivity(params: {
+  workspaceId: string;
+  contactId: string;
+  actorType: "user" | "ai" | "system";
+  actorName?: string | null;
+  action: string;
+  description?: string;
+}) {
+  await (supabase.from("lead_activities") as any).insert({
+    workspace_id: params.workspaceId,
+    contact_id: params.contactId,
+    actor_type: params.actorType,
+    actor_name: params.actorName ?? null,
+    action: params.action,
+    description: params.description ?? null,
+  });
+}
+
+function useLeadActivities(contactId: string | null) {
+  return useQuery({
+    enabled: !!contactId,
+    queryKey: ["lead_activities", contactId],
+    queryFn: async (): Promise<ActivityRow[]> => {
+      const { data, error } = await (supabase.from("lead_activities") as any)
+        .select("id, actor_type, actor_name, action, description, created_at")
+        .eq("contact_id", contactId!)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as ActivityRow[];
+    },
+  });
+}
+
 function LeadIntelligencePage() {
   const { data: contacts, isLoading } = useContacts();
   const { data: profile } = useProfile();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const allLeads: Lead[] = (contacts ?? []).map(contactToLead);
+  const allLeads: Lead[] = (contacts ?? []).map((c) => contactToLead(c as any));
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [finding, setFinding] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
-  // Filter state
   const [q, setQ] = useState("");
   const [industry, setIndustry] = useState<string>("all");
   const [size, setSize] = useState<string>("all");
   const [scoreBand, setScoreBand] = useState<string>("all");
   const [signalType, setSignalType] = useState<string>("all");
 
-  // Company → industry heuristic for demo data
-  const industryFor = (company: string) => {
-    const c = company.toLowerCase();
-    if (/ramp|cred|razorpay|stripe|fintech/.test(c)) return "fintech";
-    if (/vercel|linear|retool|figma|notion|airtable|loom/.test(c)) return "devtools";
-    if (/mamaearth|boat|nykaa|meesho|zepto|d2c/.test(c)) return "ecommerce";
-    return "saas";
-  };
-
   const leads = useMemo(() => {
     return allLeads.filter((l) => {
       if (q && !`${l.name} ${l.company} ${l.title}`.toLowerCase().includes(q.toLowerCase()))
         return false;
-      if (industry !== "all" && industryFor(l.company) !== industry) return false;
+      if (industry !== "all" && l.industry !== industry) return false;
       if (scoreBand === "hot" && l.score < 80) return false;
       if (scoreBand === "warm" && (l.score < 50 || l.score >= 80)) return false;
       if (scoreBand === "cold" && l.score >= 50) return false;
       if (signalType !== "all" && !l.signals.some((s) => s.tone === signalType)) return false;
-      // size filter is a UX-only placeholder for demo contacts (no size field)
       if (size !== "all") return true;
       return true;
     });
   }, [allLeads, q, industry, scoreBand, signalType, size]);
 
-  const selected = leads.find((l) => l.id === selectedId) ?? allLeads.find((l) => l.id === selectedId) ?? null;
+  const selected =
+    leads.find((l) => l.id === selectedId) ??
+    allLeads.find((l) => l.id === selectedId) ??
+    null;
 
   const clearFilters = () => {
     setQ(""); setIndustry("all"); setSize("all"); setScoreBand("all"); setSignalType("all");
@@ -190,8 +262,95 @@ function LeadIntelligencePage() {
       ai_signal: `From lead: ${lead.name}`,
     });
     if (error) { toast.error(error.message); return; }
+    await logActivity({
+      workspaceId: profile.workspace_id,
+      contactId: lead.id,
+      actorType: "user",
+      actorName: profile.full_name ?? profile.email ?? "User",
+      action: "Added to pipeline",
+      description: `Created deal for ${lead.company || lead.name}`,
+    });
     toast.success(`${lead.company || lead.name} added to pipeline`);
     queryClient.invalidateQueries({ queryKey: ["deals", profile.workspace_id] });
+    queryClient.invalidateQueries({ queryKey: ["lead_activities", lead.id] });
+  };
+
+  // Import Leads: CSV upload → contacts.insert
+  const onImportClick = () => fileRef.current?.click();
+  const onImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !profile?.workspace_id) return;
+    try {
+      const text = await file.text();
+      const rows = parseCsv(text);
+      if (rows.length === 0) { toast.error("CSV is empty"); return; }
+      const inserts = rows.map((r) => ({
+        workspace_id: profile.workspace_id!,
+        first_name: r.first_name ?? r.firstname ?? r["first name"] ?? null,
+        last_name: r.last_name ?? r.lastname ?? r["last name"] ?? null,
+        title: r.title ?? r.role ?? null,
+        company: r.company ?? r.organization ?? null,
+        email: r.email ?? null,
+        linkedin_url: r.linkedin ?? r.linkedin_url ?? null,
+        industry: r.industry ?? null,
+        lead_score: Number(r.score ?? r.lead_score ?? 50) || 50,
+        stage: (r.stage as string) || autoStageFromScore(Number(r.score ?? r.lead_score ?? 50) || 50),
+        signals: [],
+        last_activity: new Date().toISOString(),
+      }));
+      const { data, error } = await supabase.from("contacts").insert(inserts).select("id, company");
+      if (error) { toast.error(error.message); return; }
+      toast.success(`Imported ${inserts.length} lead${inserts.length === 1 ? "" : "s"}`);
+      queryClient.invalidateQueries({ queryKey: ["contacts", profile.workspace_id] });
+      // log activity per lead
+      await Promise.all(
+        (data ?? []).map((c: any) =>
+          logActivity({
+            workspaceId: profile.workspace_id!,
+            contactId: c.id,
+            actorType: "user",
+            actorName: profile.full_name ?? profile.email ?? "User",
+            action: "Imported from CSV",
+            description: `Imported ${c.company ?? "lead"} via CSV upload`,
+          }),
+        ),
+      );
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  // Find Leads: invoke run-agent with the workspace ICP.
+  const onFindLeads = async () => {
+    if (!profile?.workspace_id) return;
+    setFinding(true);
+    try {
+      const { data: ws } = await (supabase.from("workspaces") as any)
+        .select("icp, name")
+        .eq("id", profile.workspace_id)
+        .maybeSingle();
+      const icp = ws?.icp ?? {};
+      const { data, error } = await supabase.functions.invoke("run-agent", {
+        body: {
+          workspace_id: profile.workspace_id,
+          agent: "lead-finder",
+          input: { icp, count: 10 },
+        },
+      });
+      if (error) throw error;
+      toast.success(
+        typeof data === "object" && data && "message" in (data as any)
+          ? String((data as any).message)
+          : "AI Lead Finder started — new leads will appear as they’re scored.",
+      );
+      queryClient.invalidateQueries({ queryKey: ["contacts", profile.workspace_id] });
+      queryClient.invalidateQueries({ queryKey: ["ai_tasks", profile.workspace_id] });
+    } catch (err) {
+      toast.error(`Find Leads failed: ${(err as Error).message}`);
+    } finally {
+      setFinding(false);
+    }
   };
 
   useEffect(() => {
@@ -206,14 +365,16 @@ function LeadIntelligencePage() {
       const now = new Date();
       const mins = (m: number) => new Date(now.getTime() - m * 60_000).toISOString();
       const mock = [
-        { first_name: "Sarah", last_name: "Chen", title: "VP of Sales", company: "Notion Labs", email: "sarah@notion.so", linkedin_url: "https://linkedin.com/in/sarahchen", lead_score: 94, stage: "Hot", last_activity: mins(12), signals: [{ label: "Hiring 5 AEs", tone: "hiring" }, { label: "Series C closed", tone: "funding" }, { label: "Visited pricing 4x", tone: "intent" }], workspace_id: workspaceId },
-        { first_name: "Marcus", last_name: "Rivera", title: "Head of RevOps", company: "Vercel", email: "marcus@vercel.com", linkedin_url: "https://linkedin.com/in/mrivera", lead_score: 89, stage: "Hot", last_activity: mins(45), signals: [{ label: "Downloaded whitepaper", tone: "intent" }, { label: "Uses Salesforce", tone: "tech" }], workspace_id: workspaceId },
-        { first_name: "Priya", last_name: "Nair", title: "CRO", company: "Ramp", email: "priya@ramp.com", linkedin_url: "https://linkedin.com/in/priyanair", lead_score: 87, stage: "Hot", last_activity: mins(120), signals: [{ label: "Hiring SDR team", tone: "hiring" }, { label: "Intent surge fintech", tone: "intent" }], workspace_id: workspaceId },
-        { first_name: "Daniel", last_name: "Park", title: "Director of Growth", company: "Linear", email: "daniel@linear.app", linkedin_url: "https://linkedin.com/in/danielpark", lead_score: 72, stage: "Warm", last_activity: mins(360), signals: [{ label: "Opened 3 emails", tone: "intent" }, { label: "Migrating to HubSpot", tone: "tech" }], workspace_id: workspaceId },
-        { first_name: "Emily", last_name: "Zhang", title: "Sales Ops Lead", company: "Figma", email: "emily@figma.com", linkedin_url: "https://linkedin.com/in/emilyzhang", lead_score: 68, stage: "Warm", last_activity: mins(720), signals: [{ label: "Series D funding", tone: "funding" }], workspace_id: workspaceId },
-        { first_name: "James", last_name: "O'Connor", title: "VP Marketing", company: "Retool", email: "james@retool.com", linkedin_url: "https://linkedin.com/in/joconnor", lead_score: 61, stage: "Warm", last_activity: mins(1440), signals: [{ label: "Uses Marketo", tone: "tech" }, { label: "Hiring PMM", tone: "hiring" }], workspace_id: workspaceId },
-        { first_name: "Ana", last_name: "Silva", title: "Founder", company: "Loom", email: "ana@loom.com", linkedin_url: "https://linkedin.com/in/anasilva", lead_score: 42, stage: "Cold", last_activity: mins(4320), signals: [{ label: "Newsletter subscriber", tone: "intent" }], workspace_id: workspaceId },
-        { first_name: "Tom", last_name: "Becker", title: "Growth PM", company: "Airtable", email: "tom@airtable.com", linkedin_url: "https://linkedin.com/in/tombecker", lead_score: 35, stage: "Nurture", last_activity: mins(10080), signals: [{ label: "Attended webinar Q1", tone: "intent" }], workspace_id: workspaceId },
+        { first_name: "Aditi", last_name: "Sharma", title: "Head of Growth", company: "Mamaearth", email: "aditi@mamaearth.in", industry: "ecommerce", lead_score: 92, stage: "Hot", last_activity: mins(15), signals: [{ label: "Hiring 3 growth PMs", tone: "hiring" }, { label: "Visited pricing 5x", tone: "intent" }], workspace_id: workspaceId },
+        { first_name: "Rohit", last_name: "Verma", title: "CMO", company: "boAt", email: "rohit@boat-lifestyle.com", industry: "ecommerce", lead_score: 88, stage: "Hot", last_activity: mins(60), signals: [{ label: "WhatsApp API RFP", tone: "intent" }], workspace_id: workspaceId },
+        { first_name: "Neha", last_name: "Kapoor", title: "VP Marketing", company: "Zepto", email: "neha@zeptonow.com", industry: "ecommerce", lead_score: 85, stage: "Hot", last_activity: mins(120), signals: [{ label: "Series F closed", tone: "funding" }], workspace_id: workspaceId },
+        { first_name: "Karan", last_name: "Mehta", title: "Founder", company: "Physics Wallah", email: "karan@pw.live", industry: "education", lead_score: 76, stage: "Warm", last_activity: mins(360), signals: [{ label: "Opened 4 emails", tone: "intent" }], workspace_id: workspaceId },
+        { first_name: "Ishita", last_name: "Rao", title: "Growth Lead", company: "MakeMyTrip", email: "ishita@makemytrip.com", industry: "travel", lead_score: 71, stage: "Warm", last_activity: mins(720), signals: [{ label: "Using Twilio", tone: "tech" }], workspace_id: workspaceId },
+        { first_name: "Vikram", last_name: "Singh", title: "Head of Digital", company: "NoBroker", email: "vikram@nobroker.in", industry: "real_estate", lead_score: 64, stage: "Warm", last_activity: mins(1440), signals: [{ label: "Hiring PMM", tone: "hiring" }], workspace_id: workspaceId },
+        { first_name: "Anjali", last_name: "Iyer", title: "Marketing Manager", company: "Practo", email: "anjali@practo.com", industry: "healthcare", lead_score: 58, stage: "Warm", last_activity: mins(2880), signals: [{ label: "Newsletter subscriber", tone: "intent" }], workspace_id: workspaceId },
+        { first_name: "Rahul", last_name: "Nair", title: "Ops Lead", company: "Delhivery", email: "rahul@delhivery.com", industry: "logistics", lead_score: 45, stage: "Cold", last_activity: mins(4320), signals: [{ label: "Attended webinar", tone: "intent" }], workspace_id: workspaceId },
+        { first_name: "Meera", last_name: "Joshi", title: "CRM Lead", company: "Razorpay", email: "meera@razorpay.com", industry: "finance", lead_score: 82, stage: "Hot", last_activity: mins(90), signals: [{ label: "Uses HubSpot", tone: "tech" }, { label: "Intent surge", tone: "intent" }], workspace_id: workspaceId },
+        { first_name: "Sanjay", last_name: "Kumar", title: "Head of Sales", company: "Tata Motors", email: "sanjay@tatamotors.com", industry: "automotive", lead_score: 38, stage: "Cold", last_activity: mins(10080), signals: [], workspace_id: workspaceId },
       ];
       await supabase.from("contacts").insert(mock);
       queryClient.invalidateQueries({ queryKey: ["contacts", workspaceId] });
@@ -221,9 +382,6 @@ function LeadIntelligencePage() {
     seed();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.workspace_id]);
-
-
-
 
   return (
     <>
@@ -233,15 +391,24 @@ function LeadIntelligencePage() {
         description="AI-scored leads with enriched signals and buying intent."
         actions={
           <>
-            <Button variant="outline" size="sm">
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={onImportFile}
+            />
+            <Button variant="outline" size="sm" onClick={onImportClick}>
               <Upload className="h-4 w-4" />
               Import Leads
             </Button>
             <Button
               size="sm"
+              disabled={finding}
+              onClick={onFindLeads}
               className="bg-indigo-600 text-white hover:bg-indigo-600/90"
             >
-              <Search className="h-4 w-4" />
+              {finding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
               Find Leads
             </Button>
           </>
@@ -255,15 +422,14 @@ function LeadIntelligencePage() {
           <Input placeholder="Search leads..." className="pl-9" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
         <Select value={industry} onValueChange={setIndustry}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-[190px]">
             <SelectValue placeholder="Industry" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All industries</SelectItem>
-            <SelectItem value="saas">SaaS</SelectItem>
-            <SelectItem value="fintech">Fintech</SelectItem>
-            <SelectItem value="devtools">DevTools</SelectItem>
-            <SelectItem value="ecommerce">E-commerce</SelectItem>
+            {INDUSTRY_OPTIONS.map((i) => (
+              <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={size} onValueChange={setSize}>
@@ -312,8 +478,6 @@ function LeadIntelligencePage() {
         <span className="ml-auto text-xs text-muted-foreground">{leads.length} of {allLeads.length}</span>
       </div>
 
-
-      {/* Table */}
       {isLoading ? (
         <div className="mt-6"><PageSkeleton variant="table" /></div>
       ) : leads.length === 0 ? (
@@ -332,6 +496,7 @@ function LeadIntelligencePage() {
                 </TableHead>
                 <TableHead>Lead</TableHead>
                 <TableHead>Company</TableHead>
+                <TableHead>Industry</TableHead>
                 <TableHead>Score</TableHead>
                 <TableHead className="min-w-[220px]">Signals</TableHead>
                 <TableHead>Stage</TableHead>
@@ -360,12 +525,8 @@ function LeadIntelligencePage() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <div className="truncate text-sm font-medium text-foreground">
-                          {lead.name}
-                        </div>
-                        <div className="truncate text-xs text-muted-foreground">
-                          {lead.title}
-                        </div>
+                        <div className="truncate text-sm font-medium text-foreground">{lead.name}</div>
+                        <div className="truncate text-xs text-muted-foreground">{lead.title}</div>
                       </div>
                     </div>
                   </TableCell>
@@ -376,6 +537,11 @@ function LeadIntelligencePage() {
                       </div>
                       <span className="truncate text-sm text-foreground">{lead.company}</span>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-xs text-muted-foreground">
+                      {INDUSTRY_LABEL[lead.industry] ?? lead.industry}
+                    </span>
                   </TableCell>
                   <TableCell>
                     <span
@@ -409,10 +575,7 @@ function LeadIntelligencePage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={cn("font-medium", STAGE_TONE[lead.stage])}
-                    >
+                    <Badge variant="outline" className={cn("font-medium", STAGE_TONE[lead.stage])}>
                       {lead.stage}
                     </Badge>
                   </TableCell>
@@ -443,7 +606,7 @@ function LeadIntelligencePage() {
       )}
 
       <Sheet open={!!selectedId} onOpenChange={(open) => !open && setSelectedId(null)}>
-        <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-md">
+        <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-lg">
           {selected && (
             <LeadDetailPanel
               lead={selected}
@@ -456,6 +619,30 @@ function LeadIntelligencePage() {
       </Sheet>
     </>
   );
+}
+
+// -------- CSV parser (minimal, header row required) --------
+function parseCsv(text: string): Record<string, string>[] {
+  const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+  if (lines.length < 2) return [];
+  const split = (line: string) => {
+    const out: string[] = []; let cur = ""; let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQ = !inQ; continue; }
+      if (ch === "," && !inQ) { out.push(cur); cur = ""; continue; }
+      cur += ch;
+    }
+    out.push(cur);
+    return out.map((s) => s.trim());
+  };
+  const headers = split(lines[0]).map((h) => h.toLowerCase());
+  return lines.slice(1).map((line) => {
+    const cols = split(line);
+    const row: Record<string, string> = {};
+    headers.forEach((h, i) => { row[h] = cols[i] ?? ""; });
+    return row;
+  });
 }
 
 // Deterministic per-lead pseudo-metric derived from lead id + base score.
@@ -481,14 +668,10 @@ function deriveBreakdown(lead: Lead) {
 function deriveBuyingSignals(lead: Lead) {
   const out: { icon: typeof TrendingUp; text: string; tone: string }[] = [];
   for (const s of lead.signals) {
-    if (s.tone === "intent")
-      out.push({ icon: TrendingUp, text: `${s.label} — high buying intent detected`, tone: "text-indigo-500" });
-    else if (s.tone === "hiring")
-      out.push({ icon: Users, text: `${s.label} — team expansion in progress`, tone: "text-emerald-500" });
-    else if (s.tone === "funding")
-      out.push({ icon: DollarSign, text: `${s.label} — fresh budget available`, tone: "text-amber-500" });
-    else if (s.tone === "tech")
-      out.push({ icon: Zap, text: `${s.label} — compatible stack`, tone: "text-sky-500" });
+    if (s.tone === "intent") out.push({ icon: TrendingUp, text: `${s.label} — high buying intent detected`, tone: "text-indigo-500" });
+    else if (s.tone === "hiring") out.push({ icon: Users, text: `${s.label} — team expansion in progress`, tone: "text-emerald-500" });
+    else if (s.tone === "funding") out.push({ icon: DollarSign, text: `${s.label} — fresh budget available`, tone: "text-amber-500" });
+    else if (s.tone === "tech") out.push({ icon: Zap, text: `${s.label} — compatible stack`, tone: "text-sky-500" });
   }
   if (out.length === 0) {
     out.push({ icon: TrendingUp, text: `No strong signals yet for ${lead.company}`, tone: "text-muted-foreground" });
@@ -509,6 +692,34 @@ function LeadDetailPanel({
 }) {
   const breakdown = deriveBreakdown(lead);
   const buyingSignals = deriveBuyingSignals(lead);
+  const { data: profile } = useProfile();
+  const queryClient = useQueryClient();
+  const { data: activities } = useLeadActivities(lead.id);
+  const [savingStage, setSavingStage] = useState(false);
+
+  const suggested = autoStageFromScore(lead.score);
+
+  const changeStage = async (next: LeadStage) => {
+    if (!profile?.workspace_id || next === lead.stage) return;
+    setSavingStage(true);
+    const { error } = await supabase
+      .from("contacts")
+      .update({ stage: next })
+      .eq("id", lead.id);
+    setSavingStage(false);
+    if (error) { toast.error(error.message); return; }
+    await logActivity({
+      workspaceId: profile.workspace_id,
+      contactId: lead.id,
+      actorType: "user",
+      actorName: profile.full_name ?? profile.email ?? "User",
+      action: "Stage changed",
+      description: `${lead.stage} → ${next}`,
+    });
+    toast.success(`Stage updated to ${next}`);
+    queryClient.invalidateQueries({ queryKey: ["contacts", profile.workspace_id] });
+    queryClient.invalidateQueries({ queryKey: ["lead_activities", lead.id] });
+  };
 
   return (
     <div className="flex h-full flex-col">
@@ -522,9 +733,7 @@ function LeadDetailPanel({
           </Avatar>
           <div className="min-w-0 flex-1 text-left">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="truncate text-base font-semibold text-foreground">
-                {lead.name}
-              </h3>
+              <h3 className="truncate text-base font-semibold text-foreground">{lead.name}</h3>
               <Button size="icon" variant="ghost" className="h-7 w-7">
                 <Linkedin className="h-4 w-4 text-[#0A66C2]" />
               </Button>
@@ -543,17 +752,44 @@ function LeadDetailPanel({
       </SheetHeader>
 
       <div className="flex-1 space-y-6 p-5">
+        {/* Stage editor */}
+        <div>
+          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Stage
+          </h4>
+          <div className="flex items-center gap-2">
+            <Select value={lead.stage} onValueChange={(v) => changeStage(v as LeadStage)}>
+              <SelectTrigger className="h-9 w-[160px]" disabled={savingStage}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(["Hot", "Warm", "Cold", "Nurture"] as LeadStage[]).map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {suggested !== lead.stage && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => changeStage(suggested)}
+                disabled={savingStage}
+              >
+                Use AI suggestion: {suggested}
+              </Button>
+            )}
+          </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            AI auto-rule: score ≥ 80 → Hot · 50–79 → Warm · &lt; 50 → Cold. Manual stage always wins.
+          </p>
+        </div>
+
         <div>
           <div className="mb-3 flex items-center justify-between">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               AI Score breakdown
             </h4>
-            <span
-              className={cn(
-                "rounded-full border px-2 py-0.5 text-xs font-semibold",
-                scoreTone(lead.score),
-              )}
-            >
+            <span className={cn("rounded-full border px-2 py-0.5 text-xs font-semibold", scoreTone(lead.score))}>
               {lead.score}
             </span>
           </div>
@@ -586,6 +822,40 @@ function LeadDetailPanel({
             ))}
           </ul>
         </div>
+
+        {/* Activity log */}
+        <div>
+          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Activity log
+          </h4>
+          {!activities || activities.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No activity yet. Actions by you or AI will appear here.</p>
+          ) : (
+            <ol className="relative space-y-3 border-l border-border pl-4">
+              {activities.map((a) => {
+                const isAi = a.actor_type === "ai";
+                const Icon = isAi ? Bot : UserIcon;
+                return (
+                  <li key={a.id} className="relative">
+                    <span className={cn(
+                      "absolute -left-[22px] top-0.5 flex h-4 w-4 items-center justify-center rounded-full border bg-background",
+                      isAi ? "border-violet-500/40 text-violet-500" : "border-indigo-500/40 text-indigo-500",
+                    )}>
+                      <Icon className="h-2.5 w-2.5" />
+                    </span>
+                    <div className="text-sm text-foreground">{a.action}</div>
+                    {a.description && (
+                      <div className="text-xs text-muted-foreground">{a.description}</div>
+                    )}
+                    <div className="mt-0.5 text-[11px] text-muted-foreground">
+                      {isAi ? "AI" : a.actor_name ?? "User"} · {relTime(a.created_at)}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2 border-t border-border p-5">
@@ -605,4 +875,3 @@ function LeadDetailPanel({
     </div>
   );
 }
-
