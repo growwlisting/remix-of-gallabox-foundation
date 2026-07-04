@@ -64,7 +64,7 @@ export function useDeals() {
     queryFn: async (): Promise<DealRow[]> => {
       const { data, error } = await supabase
         .from("deals")
-        .select("id, company_name, value, stage, days_in_stage, ai_signal, channels")
+        .select("id, company_name, value, stage, days_in_stage, ai_signal, channels, created_at")
         .eq("workspace_id", workspaceId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
