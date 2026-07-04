@@ -42,6 +42,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useContacts, relTime, type ContactRow } from "@/hooks/use-growth-data";
 
