@@ -88,56 +88,151 @@ function WorkspaceCard({
   workspace: Workspace;
   onActivate: (id: string) => void;
 }) {
+  const [membersOpen, setMembersOpen] = useState(false);
+  const { data: members = [] } = useQuery({
+    enabled: membersOpen,
+    queryKey: ["ws-members", workspace.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, role")
+        .eq("workspace_id", workspace.id)
+        .order("full_name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const { data: invites = [] } = useQuery({
+    enabled: membersOpen,
+    queryKey: ["ws-invites", workspace.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workspace_invites")
+        .select("id, email, role, status")
+        .eq("workspace_id", workspace.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   return (
-    <Card
-      className={cn(
-        "transition-shadow hover:shadow-lg",
-        workspace.active && "ring-1 ring-primary/20 shadow-md",
-      )}
-    >
-      <CardContent className="p-5">
-        <div className="flex items-start gap-4">
-          <WorkspaceAvatar workspace={workspace} />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between gap-2">
-              <p className="truncate text-sm font-semibold text-foreground">{workspace.name}</p>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {!workspace.active && (
-                    <DropdownMenuItem onClick={() => onActivate(workspace.id)}>Switch to workspace</DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem disabled>Settings</DropdownMenuItem>
-                  <DropdownMenuItem disabled>Members</DropdownMenuItem>
-                  <DropdownMenuItem disabled className="text-destructive focus:text-destructive">
-                    Leave workspace
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            <p className="text-xs text-muted-foreground">/{workspace.slug}</p>
-            <div className="mt-3 flex items-center gap-2">
-              {workspace.active && (
-                <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
-                  <Check className="mr-1 h-3 w-3" /> Active
-                </Badge>
-              )}
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Users className="h-3.5 w-3.5" />
-                {workspace.members} members
+    <>
+      <Card
+        className={cn(
+          "transition-shadow hover:shadow-lg",
+          workspace.active && "ring-1 ring-primary/20 shadow-md",
+        )}
+      >
+        <CardContent className="p-5">
+          <div className="flex items-start gap-4">
+            <WorkspaceAvatar workspace={workspace} />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <p className="truncate text-sm font-semibold text-foreground">{workspace.name}</p>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {!workspace.active && (
+                      <DropdownMenuItem onClick={() => onActivate(workspace.id)}>Switch to workspace</DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setMembersOpen(true); }}>
+                      Members
+                    </DropdownMenuItem>
+                    <DropdownMenuItem disabled>Settings</DropdownMenuItem>
+                    <DropdownMenuItem disabled className="text-destructive focus:text-destructive">
+                      Leave workspace
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              <Badge variant="outline" className="h-5 text-[10px] font-medium">
-                {workspace.role}
-              </Badge>
+              <p className="text-xs text-muted-foreground">/{workspace.slug}</p>
+              <div className="mt-3 flex items-center gap-2">
+                {workspace.active && (
+                  <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
+                    <Check className="mr-1 h-3 w-3" /> Active
+                  </Badge>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setMembersOpen(true)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  {workspace.members} members
+                </button>
+                <Badge variant="outline" className="h-5 text-[10px] font-medium">
+                  {workspace.role}
+                </Badge>
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <Dialog open={membersOpen} onOpenChange={setMembersOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{workspace.name} members</DialogTitle>
+            <DialogDescription>Active members and pending invites.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Active ({members.length})
+              </p>
+              {members.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No active members yet.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {members.map((m) => (
+                    <li key={m.id} className="flex items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-sm">
+                      <span className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarFallback className="text-[10px]">
+                            {(m.full_name ?? m.email ?? "?").slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>
+                          <span className="font-medium">{m.full_name ?? "—"}</span>
+                          <span className="ml-2 text-xs text-muted-foreground">{m.email}</span>
+                        </span>
+                      </span>
+                      <Badge variant="outline" className="text-[10px]">{m.role}</Badge>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            {invites.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Pending invites ({invites.length})
+                </p>
+                <ul className="space-y-1.5">
+                  {invites.map((inv) => (
+                    <li key={inv.id} className="flex items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-sm">
+                      <span className="flex items-center gap-2">
+                        <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                        {inv.email}
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-[10px]">{inv.role}</Badge>
+                        <Badge variant="secondary" className="text-[10px]">{inv.status}</Badge>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -315,16 +410,22 @@ function InviteMembersDialog() {
 }
 
 function WorkspacesPage() {
+  const queryClient = useQueryClient();
   const { data: profile } = useProfile();
   const { data: rows = [] } = useQuery({
     queryKey: ["all-workspaces"],
-    queryFn: async (): Promise<Array<{ id: string; name: string; description: string | null; member_count: number | null }>> => {
-      const { data, error } = await supabase
+    queryFn: async (): Promise<Array<{ id: string; name: string; actual_members: number }>> => {
+      const { data: ws, error } = await supabase
         .from("workspaces")
-        .select("id, name, description, member_count")
+        .select("id, name")
         .order("name");
       if (error) throw error;
-      return data ?? [];
+      const { data: mems } = await supabase.from("profiles").select("workspace_id");
+      const counts = new Map<string, number>();
+      (mems ?? []).forEach((m) => {
+        if (m.workspace_id) counts.set(m.workspace_id, (counts.get(m.workspace_id) ?? 0) + 1);
+      });
+      return (ws ?? []).map((w) => ({ ...w, actual_members: counts.get(w.id) ?? 0 }));
     },
   });
 
@@ -332,15 +433,23 @@ function WorkspacesPage() {
     id: w.id,
     name: w.name,
     slug: w.name.toLowerCase().replace(/\s+/g, "-"),
-    members: w.member_count ?? 1,
+    members: w.actual_members,
     role: "Owner",
     active: profile?.workspace_id === w.id,
     icon: Building2,
     color: "bg-indigo-500",
   }));
 
-  const handleActivate = (_id: string) => {
-    // Single-workspace mode for now — switching lives with a future auth-scoped update.
+  const handleActivate = async (id: string) => {
+    if (!profile?.id) return;
+    const { error } = await supabase.from("profiles").update({ workspace_id: id }).eq("id", profile.id);
+    if (error) {
+      toast.error(`Could not switch: ${error.message}`);
+      return;
+    }
+    toast.success("Switched workspace");
+    queryClient.invalidateQueries({ queryKey: ["profile"] });
+    queryClient.invalidateQueries({ queryKey: ["all-workspaces"] });
   };
 
   const handleCreate = async (name: string) => {
@@ -361,6 +470,7 @@ function WorkspacesPage() {
       return;
     }
     toast.success(`Workspace "${name}" created`);
+    queryClient.invalidateQueries({ queryKey: ["all-workspaces"] });
   };
 
 
