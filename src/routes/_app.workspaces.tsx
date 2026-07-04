@@ -1,14 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-auth";
 import {
   Building2,
   Check,
   FolderKanban,
+  Mail,
   MoreHorizontal,
   Plus,
+  UserPlus,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -191,6 +194,126 @@ function CreateWorkspaceDialog({ onCreate }: { onCreate: (name: string) => void 
   );
 }
 
+function InviteMembersDialog() {
+  const queryClient = useQueryClient();
+  const { data: profile } = useProfile();
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("member");
+  const [submitting, setSubmitting] = useState(false);
+
+  const { data: invites = [] } = useQuery({
+    queryKey: ["workspace_invites", profile?.workspace_id],
+    enabled: !!profile?.workspace_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workspace_invites")
+        .select("id, email, role, status, created_at")
+        .eq("workspace_id", profile!.workspace_id!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !profile?.workspace_id) return;
+    setSubmitting(true);
+    const { error } = await supabase.from("workspace_invites").insert({
+      workspace_id: profile.workspace_id,
+      email: email.trim().toLowerCase(),
+      role,
+      invited_by: profile.id,
+      status: "pending",
+    });
+    setSubmitting(false);
+    if (error) {
+      toast.error(`Invite failed: ${error.message}`);
+      return;
+    }
+    toast.success(`Invite sent to ${email.trim()}`);
+    setEmail("");
+    queryClient.invalidateQueries({ queryKey: ["workspace_invites", profile.workspace_id] });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <UserPlus className="h-4 w-4" />
+          Invite members
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Invite teammates</DialogTitle>
+          <DialogDescription>
+            Send an invite to join this workspace. They will get access on first sign-in.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="grid gap-4 py-2">
+          <div className="grid gap-2">
+            <Label htmlFor="invite-email">Email address</Label>
+            <Input
+              id="invite-email"
+              type="email"
+              placeholder="teammate@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="invite-role">Role</Label>
+            <select
+              id="invite-role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="member">Member</option>
+              <option value="admin">Admin</option>
+              <option value="viewer">Viewer</option>
+            </select>
+          </div>
+          <DialogFooter>
+            <Button
+              type="submit"
+              className="bg-indigo-600 text-white hover:bg-indigo-700"
+              disabled={submitting || !email.trim()}
+            >
+              {submitting ? "Sending…" : "Send invite"}
+            </Button>
+          </DialogFooter>
+        </form>
+
+        {invites.length > 0 && (
+          <div className="mt-2 border-t border-border pt-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Pending invites
+            </p>
+            <ul className="space-y-1.5">
+              {invites.map((inv) => (
+                <li key={inv.id} className="flex items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-sm">
+                  <span className="flex items-center gap-2">
+                    <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                    {inv.email}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-[10px]">{inv.role}</Badge>
+                    <Badge variant="secondary" className="text-[10px]">{inv.status}</Badge>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function WorkspacesPage() {
   const { data: profile } = useProfile();
   const { data: rows = [] } = useQuery({
@@ -221,16 +344,23 @@ function WorkspacesPage() {
   };
 
   const handleCreate = async (name: string) => {
-    // Create a fresh org + workspace pair in the same org group.
     const { data: org, error: oErr } = await supabase
       .from("organizations")
       .insert({ name, plan: "enterprise" })
       .select("id")
       .single();
-    if (oErr || !org) return;
-    await supabase
+    if (oErr || !org) {
+      toast.error("Could not create workspace");
+      return;
+    }
+    const { error: wErr } = await supabase
       .from("workspaces")
       .insert({ name, description: `${name} workspace`, org_id: org.id, member_count: 1 });
+    if (wErr) {
+      toast.error(`Workspace creation failed: ${wErr.message}`);
+      return;
+    }
+    toast.success(`Workspace "${name}" created`);
   };
 
 
@@ -265,12 +395,10 @@ function WorkspacesPage() {
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-foreground">Need to invite a team?</p>
             <p className="text-xs text-muted-foreground">
-              Members are managed per workspace. Invite colleagues from workspace settings once you switch in.
+              Add teammates by email. They'll join this workspace on sign-in.
             </p>
           </div>
-          <Button variant="outline" size="sm" disabled>
-            Invite members
-          </Button>
+          <InviteMembersDialog />
         </CardContent>
       </Card>
     </div>
