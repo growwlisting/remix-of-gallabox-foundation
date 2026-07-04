@@ -259,7 +259,7 @@ function MarketIntelligencePage() {
     setIsRefreshing(true);
     const { data } = await supabase.functions.invoke("fetch-signals", {
       body: {
-        query: ["SaaS", "revenue", "B2B sales"],
+        query: ICP_KEYWORDS,
         workspaceId: profile?.workspace_id,
       },
     });
@@ -274,9 +274,9 @@ function MarketIntelligencePage() {
       }));
       setLiveSignals(mapped);
       setLastUpdated(new Date());
-      toast.success(`${data.signals.length} live signals refreshed from Apollo`);
+      toast.success(`${data.signals.length} live signals refreshed for Gallabox India ICP`);
     } else {
-      toast.error("Apollo fetch failed — add APOLLO_API_KEY to secrets");
+      toast.error("Signal fetch returned 0 — check Apollo/Intent provider quota");
     }
     setIsRefreshing(false);
   };
