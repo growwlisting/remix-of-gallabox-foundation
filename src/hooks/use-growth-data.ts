@@ -11,7 +11,9 @@ export type DealRow = {
   days_in_stage: number;
   ai_signal: string | null;
   channels: string[];
+  created_at: string;
 };
+
 
 export type CampaignRow = {
   id: string;
