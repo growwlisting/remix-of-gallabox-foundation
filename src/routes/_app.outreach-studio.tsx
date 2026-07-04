@@ -143,7 +143,8 @@ async function aiTransform(
 /* ------------------------------ Page ------------------------------ */
 
 function OutreachStudioPage() {
-  const { user } = useAuth();
+  const session = useSession();
+  const user = session?.user ?? null;
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [sequences, setSequences] = useState<SequenceRow[]>([]);
   const [steps, setSteps] = useState<StepRow[]>([]);
