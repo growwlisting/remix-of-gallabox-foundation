@@ -414,6 +414,56 @@ export type Database = {
           },
         ]
       }
+      workflows: {
+        Row: {
+          created_at: string
+          id: string
+          last_run_at: string | null
+          metric_label: string
+          name: string
+          status: string
+          steps: number
+          template_key: string | null
+          trigger_label: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_run_at?: string | null
+          metric_label?: string
+          name: string
+          status?: string
+          steps?: number
+          template_key?: string | null
+          trigger_label?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_run_at?: string | null
+          metric_label?: string
+          name?: string
+          status?: string
+          steps?: number
+          template_key?: string | null
+          trigger_label?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflows_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_invites: {
         Row: {
           created_at: string
