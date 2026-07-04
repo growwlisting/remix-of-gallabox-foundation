@@ -193,9 +193,9 @@ function CreateWorkspaceDialog({ onCreate }: { onCreate: (name: string) => void 
 
 function WorkspacesPage() {
   const { data: profile } = useProfile();
-  const { data: rows = [], isLoading } = useQuery({
+  const { data: rows = [] } = useQuery({
     queryKey: ["all-workspaces"],
-    queryFn: async () => {
+    queryFn: async (): Promise<Array<{ id: string; name: string; description: string | null; member_count: number | null }>> => {
       const { data, error } = await supabase
         .from("workspaces")
         .select("id, name, description, member_count")
