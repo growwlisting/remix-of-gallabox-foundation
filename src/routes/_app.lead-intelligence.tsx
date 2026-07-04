@@ -427,10 +427,10 @@ function LeadIntelligencePage() {
                       <Button size="icon" variant="ghost" title="Research" onClick={() => setSelectedId(lead.id)}>
                         <Search className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" title="Outreach">
+                      <Button size="icon" variant="ghost" title="Draft outreach" onClick={() => navigate({ to: "/outreach-studio" })}>
                         <Send className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" title="Add to campaign">
+                      <Button size="icon" variant="ghost" title="Add to pipeline" onClick={() => addLeadToPipeline(lead)}>
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -444,7 +444,14 @@ function LeadIntelligencePage() {
 
       <Sheet open={!!selectedId} onOpenChange={(open) => !open && setSelectedId(null)}>
         <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-md">
-          {selected && <LeadDetailPanel lead={selected} />}
+          {selected && (
+            <LeadDetailPanel
+              lead={selected}
+              onDraftOutreach={() => navigate({ to: "/outreach-studio" })}
+              onAddToCampaign={() => navigate({ to: "/campaign-studio" })}
+              onAddToPipeline={() => addLeadToPipeline(selected)}
+            />
+          )}
         </SheetContent>
       </Sheet>
     </>
