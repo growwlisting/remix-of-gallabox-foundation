@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useProfile } from "@/hooks/use-auth";
 import {
   Plus,
   Mail,
@@ -273,9 +272,9 @@ function relTimeShort(iso: string): string {
 
 function CampaignStudioPage() {
   const { data: rows, isLoading } = useCampaigns();
-  const { data: profile } = useProfile();
 
   // Mock campaign seeder removed — Campaign Studio now shows real workspace data only.
+
 
 
   const campaigns: Campaign[] = (rows ?? []).map((r) => {
