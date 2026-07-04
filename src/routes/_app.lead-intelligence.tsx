@@ -252,9 +252,9 @@ function LeadIntelligencePage() {
       <div className="mt-6 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[220px] flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search leads..." className="pl-9" />
+          <Input placeholder="Search leads..." className="pl-9" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <Select>
+        <Select value={industry} onValueChange={setIndustry}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Industry" />
           </SelectTrigger>
@@ -266,7 +266,7 @@ function LeadIntelligencePage() {
             <SelectItem value="ecommerce">E-commerce</SelectItem>
           </SelectContent>
         </Select>
-        <Select>
+        <Select value={size} onValueChange={setSize}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Company size" />
           </SelectTrigger>
@@ -278,7 +278,7 @@ function LeadIntelligencePage() {
             <SelectItem value="1000+">1,000+</SelectItem>
           </SelectContent>
         </Select>
-        <Select>
+        <Select value={scoreBand} onValueChange={setScoreBand}>
           <SelectTrigger className="w-[170px]">
             <SelectValue placeholder="Lead score" />
           </SelectTrigger>
@@ -289,7 +289,7 @@ function LeadIntelligencePage() {
             <SelectItem value="cold">Cold · &lt;50</SelectItem>
           </SelectContent>
         </Select>
-        <Select>
+        <Select value={signalType} onValueChange={setSignalType}>
           <SelectTrigger className="w-[170px]">
             <SelectValue placeholder="Signal type" />
           </SelectTrigger>
@@ -304,11 +304,14 @@ function LeadIntelligencePage() {
         <Button
           variant="link"
           size="sm"
+          onClick={clearFilters}
           className="text-muted-foreground hover:text-foreground"
         >
           Clear filters
         </Button>
+        <span className="ml-auto text-xs text-muted-foreground">{leads.length} of {allLeads.length}</span>
       </div>
+
 
       {/* Table */}
       {isLoading ? (
