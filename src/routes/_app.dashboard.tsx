@@ -51,36 +51,7 @@ type Stat = {
   iconClass: string;
 };
 
-const STATS: Stat[] = [
-  {
-    label: "Pipeline Value",
-    value: "$2.4M",
-    change: 12,
-    icon: TrendingUp,
-    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
-  },
-  {
-    label: "Active Leads",
-    value: "1,284",
-    change: 8,
-    icon: Users,
-    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
-  },
-  {
-    label: "Meetings Booked",
-    value: "47",
-    change: 23,
-    icon: Calendar,
-    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
-  },
-  {
-    label: "Won This Month",
-    value: "$340K",
-    change: 5,
-    icon: DollarSign,
-    iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary",
-  },
-];
+// Live KPIs are computed inside DashboardPage from real workspace data.
 
 const PIPELINE_DATA = [
   { month: "Jan", created: 320, closed: 140 },
