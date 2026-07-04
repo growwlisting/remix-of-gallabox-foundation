@@ -227,8 +227,8 @@ const TRENDS = [
   },
 ];
 
-// Gallabox India ICP definition — drives Refresh Signals query.
-const ICP_KEYWORDS = ["D2C India", "EdTech India", "Fintech India", "WhatsApp Business API", "conversational commerce"];
+// ICP-driven keywords are now derived from the workspace ICP (industries + personas) inside handleRefresh.
+
 
 /* ─── Helpers ─── */
 
