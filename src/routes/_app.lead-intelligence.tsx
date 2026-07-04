@@ -496,7 +496,17 @@ function deriveBuyingSignals(lead: Lead) {
   return out;
 }
 
-function LeadDetailPanel({ lead }: { lead: Lead }) {
+function LeadDetailPanel({
+  lead,
+  onDraftOutreach,
+  onAddToCampaign,
+  onAddToPipeline,
+}: {
+  lead: Lead;
+  onDraftOutreach?: () => void;
+  onAddToCampaign?: () => void;
+  onAddToPipeline?: () => void;
+}) {
   const breakdown = deriveBreakdown(lead);
   const buyingSignals = deriveBuyingSignals(lead);
 
