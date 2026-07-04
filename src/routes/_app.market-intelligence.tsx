@@ -314,7 +314,7 @@ function MarketIntelligencePage() {
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center gap-2">
               <Briefcase className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium text-foreground">B2B SaaS</span>
+              <span className="font-medium text-foreground">D2C · EdTech · Fintech (India)</span>
             </div>
             <div className="flex items-center gap-2">
               <UsersIcon className="h-4 w-4 text-muted-foreground" />
@@ -322,15 +322,15 @@ function MarketIntelligencePage() {
             </div>
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-muted-foreground" />
-              <span className="text-foreground">Series A–C</span>
+              <span className="text-foreground">Series A–D, mid-market</span>
             </div>
             <div className="flex items-center gap-2">
               <SearchCheck className="h-4 w-4 text-muted-foreground" />
-              <span className="text-foreground">VP Sales / CTO</span>
+              <span className="text-foreground">Head of Growth / CMO / Founder</span>
             </div>
             <div className="rounded-lg border border-border bg-muted/40 p-3">
               <p className="text-xs text-muted-foreground">
-                Pain: Manual outreach, low reply rates
+                Pain: Fragmented WhatsApp + email + CRM. Low reply rates. Manual routing.
               </p>
             </div>
           </CardContent>
