@@ -736,3 +736,140 @@ function DealDetail({
     </div>
   );
 }
+
+type DealActivity = {
+  id: string;
+  actor_type: string;
+  actor_name: string | null;
+  action: string;
+  description: string | null;
+  created_at: string;
+};
+
+function actorEmoji(actor_type: string, action: string) {
+  if (actor_type === "ai") return "🤖";
+  if (actor_type === "system") return "⚙️";
+  if (action.startsWith("stage.")) return "🔀";
+  if (action === "deal.created") return "✨";
+  if (action === "note.added") return "📝";
+  return "👤";
+}
+
+function relTime(iso: string) {
+  const m = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
+}
+
+function DealActivityFeed({
+  dealId,
+  workspaceId,
+}: {
+  dealId: string;
+  workspaceId: string | null | undefined;
+}) {
+  const { data: profile } = useProfile();
+  const queryClient = useQueryClient();
+  const [note, setNote] = useState("");
+  const [posting, setPosting] = useState(false);
+
+  const { data: activities } = useQuery({
+    queryKey: ["deal_activities", dealId],
+    enabled: !!dealId,
+    queryFn: async (): Promise<DealActivity[]> => {
+      const { data, error } = await (supabase as any)
+        .from("deal_activities")
+        .select("id, actor_type, actor_name, action, description, created_at")
+        .eq("deal_id", dealId)
+        .order("created_at", { ascending: false })
+        .limit(25);
+      if (error) throw error;
+      return (data ?? []) as DealActivity[];
+    },
+  });
+
+  useEffect(() => {
+    if (!dealId) return;
+    const channel = supabase
+      .channel(`deal-activity-${dealId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "deal_activities", filter: `deal_id=eq.${dealId}` },
+        () => queryClient.invalidateQueries({ queryKey: ["deal_activities", dealId] }),
+      )
+      .subscribe();
+    return () => {
+      channel.unsubscribe();
+      supabase.removeChannel(channel);
+    };
+  }, [dealId, queryClient]);
+
+  const addNote = async () => {
+    if (!note.trim() || !workspaceId) return;
+    setPosting(true);
+    const { error } = await (supabase as any).from("deal_activities").insert({
+      workspace_id: workspaceId,
+      deal_id: dealId,
+      actor_type: "user",
+      actor_name: profile?.full_name ?? profile?.email ?? "User",
+      action: "note.added",
+      description: note.trim(),
+    });
+    setPosting(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setNote("");
+    queryClient.invalidateQueries({ queryKey: ["deal_activities", dealId] });
+  };
+
+  return (
+    <div>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Activity log
+      </p>
+      <div className="mb-3 flex gap-2">
+        <Input
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Log an activity (call, meeting, note)..."
+          onKeyDown={(e) => {
+            if (e.key === "Enter") addNote();
+          }}
+        />
+        <Button size="sm" disabled={posting || !note.trim()} onClick={addNote}>
+          Log
+        </Button>
+      </div>
+      <ul className="space-y-2 text-sm">
+        {(activities ?? []).length === 0 && (
+          <li className="rounded-md bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+            No activity yet. Stage changes and notes will appear here automatically.
+          </li>
+        )}
+        {(activities ?? []).map((a) => (
+          <li key={a.id} className="rounded-md bg-muted/40 px-3 py-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate">
+                {actorEmoji(a.actor_type, a.action)}{" "}
+                <span className="font-medium">{a.description ?? a.action}</span>
+              </span>
+              <span className="shrink-0 text-xs text-muted-foreground">{relTime(a.created_at)}</span>
+            </div>
+            {a.actor_name && (
+              <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                by {a.actor_name} · {a.actor_type}
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
