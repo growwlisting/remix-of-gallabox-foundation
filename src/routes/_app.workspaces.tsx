@@ -88,56 +88,151 @@ function WorkspaceCard({
   workspace: Workspace;
   onActivate: (id: string) => void;
 }) {
+  const [membersOpen, setMembersOpen] = useState(false);
+  const { data: members = [] } = useQuery({
+    enabled: membersOpen,
+    queryKey: ["ws-members", workspace.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, role")
+        .eq("workspace_id", workspace.id)
+        .order("full_name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const { data: invites = [] } = useQuery({
+    enabled: membersOpen,
+    queryKey: ["ws-invites", workspace.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workspace_invites")
+        .select("id, email, role, status")
+        .eq("workspace_id", workspace.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   return (
-    <Card
-      className={cn(
-        "transition-shadow hover:shadow-lg",
-        workspace.active && "ring-1 ring-primary/20 shadow-md",
-      )}
-    >
-      <CardContent className="p-5">
-        <div className="flex items-start gap-4">
-          <WorkspaceAvatar workspace={workspace} />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between gap-2">
-              <p className="truncate text-sm font-semibold text-foreground">{workspace.name}</p>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {!workspace.active && (
-                    <DropdownMenuItem onClick={() => onActivate(workspace.id)}>Switch to workspace</DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem disabled>Settings</DropdownMenuItem>
-                  <DropdownMenuItem disabled>Members</DropdownMenuItem>
-                  <DropdownMenuItem disabled className="text-destructive focus:text-destructive">
-                    Leave workspace
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            <p className="text-xs text-muted-foreground">/{workspace.slug}</p>
-            <div className="mt-3 flex items-center gap-2">
-              {workspace.active && (
-                <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
-                  <Check className="mr-1 h-3 w-3" /> Active
-                </Badge>
-              )}
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Users className="h-3.5 w-3.5" />
-                {workspace.members} members
+    <>
+      <Card
+        className={cn(
+          "transition-shadow hover:shadow-lg",
+          workspace.active && "ring-1 ring-primary/20 shadow-md",
+        )}
+      >
+        <CardContent className="p-5">
+          <div className="flex items-start gap-4">
+            <WorkspaceAvatar workspace={workspace} />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <p className="truncate text-sm font-semibold text-foreground">{workspace.name}</p>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {!workspace.active && (
+                      <DropdownMenuItem onClick={() => onActivate(workspace.id)}>Switch to workspace</DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setMembersOpen(true); }}>
+                      Members
+                    </DropdownMenuItem>
+                    <DropdownMenuItem disabled>Settings</DropdownMenuItem>
+                    <DropdownMenuItem disabled className="text-destructive focus:text-destructive">
+                      Leave workspace
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              <Badge variant="outline" className="h-5 text-[10px] font-medium">
-                {workspace.role}
-              </Badge>
+              <p className="text-xs text-muted-foreground">/{workspace.slug}</p>
+              <div className="mt-3 flex items-center gap-2">
+                {workspace.active && (
+                  <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
+                    <Check className="mr-1 h-3 w-3" /> Active
+                  </Badge>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setMembersOpen(true)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  {workspace.members} members
+                </button>
+                <Badge variant="outline" className="h-5 text-[10px] font-medium">
+                  {workspace.role}
+                </Badge>
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <Dialog open={membersOpen} onOpenChange={setMembersOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{workspace.name} members</DialogTitle>
+            <DialogDescription>Active members and pending invites.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Active ({members.length})
+              </p>
+              {members.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No active members yet.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {members.map((m) => (
+                    <li key={m.id} className="flex items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-sm">
+                      <span className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarFallback className="text-[10px]">
+                            {(m.full_name ?? m.email ?? "?").slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>
+                          <span className="font-medium">{m.full_name ?? "—"}</span>
+                          <span className="ml-2 text-xs text-muted-foreground">{m.email}</span>
+                        </span>
+                      </span>
+                      <Badge variant="outline" className="text-[10px]">{m.role}</Badge>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            {invites.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Pending invites ({invites.length})
+                </p>
+                <ul className="space-y-1.5">
+                  {invites.map((inv) => (
+                    <li key={inv.id} className="flex items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-sm">
+                      <span className="flex items-center gap-2">
+                        <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                        {inv.email}
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-[10px]">{inv.role}</Badge>
+                        <Badge variant="secondary" className="text-[10px]">{inv.status}</Badge>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
