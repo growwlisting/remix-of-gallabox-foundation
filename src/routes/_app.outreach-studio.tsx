@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
+import { useSession } from "@/hooks/use-auth";
 
 import { PageHeader } from "@/components/states/page-header";
 import { getRouteMeta } from "@/lib/route-meta";
