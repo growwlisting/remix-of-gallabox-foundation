@@ -138,7 +138,7 @@ function LeadIntelligencePage() {
   const queryClient = useQueryClient();
   const leads: Lead[] = (contacts ?? []).map(contactToLead);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = leads.find((l) => l.id === selectedId) ?? leads[0] ?? null;
+  const selected = leads.find((l) => l.id === selectedId) ?? null;
 
   useEffect(() => {
     const seed = async () => {
