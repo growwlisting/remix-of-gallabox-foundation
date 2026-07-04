@@ -54,14 +54,8 @@ type Stat = {
 
 // Live KPIs are computed inside DashboardPage from real workspace data.
 
-const PIPELINE_DATA = [
-  { month: "Jan", created: 320, closed: 140 },
-  { month: "Feb", created: 410, closed: 190 },
-  { month: "Mar", created: 380, closed: 210 },
-  { month: "Apr", created: 520, closed: 260 },
-  { month: "May", created: 610, closed: 300 },
-  { month: "Jun", created: 720, closed: 340 },
-];
+// PIPELINE_DATA is now derived from real deals inside PipelineChart.
+
 
 type ActivityKind = "Meeting" | "Deal" | "Lead" | "Email";
 
