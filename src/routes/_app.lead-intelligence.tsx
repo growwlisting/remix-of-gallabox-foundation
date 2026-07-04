@@ -589,13 +589,17 @@ function LeadDetailPanel({
       </div>
 
       <div className="space-y-2 border-t border-border p-5">
-        <Button className="w-full bg-indigo-600 text-white hover:bg-indigo-600/90">
+        <Button className="w-full bg-indigo-600 text-white hover:bg-indigo-600/90" onClick={onDraftOutreach}>
           <Send className="h-4 w-4" />
           Draft Outreach
         </Button>
-        <Button variant="outline" className="w-full">
+        <Button variant="outline" className="w-full" onClick={onAddToCampaign}>
           <Plus className="h-4 w-4" />
           Add to Campaign
+        </Button>
+        <Button variant="outline" className="w-full" onClick={onAddToPipeline}>
+          <TrendingUp className="h-4 w-4" />
+          Add to Pipeline (CRM)
         </Button>
       </div>
     </div>
