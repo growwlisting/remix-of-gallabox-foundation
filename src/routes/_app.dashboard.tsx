@@ -54,14 +54,8 @@ type Stat = {
 
 // Live KPIs are computed inside DashboardPage from real workspace data.
 
-const PIPELINE_DATA = [
-  { month: "Jan", created: 320, closed: 140 },
-  { month: "Feb", created: 410, closed: 190 },
-  { month: "Mar", created: 380, closed: 210 },
-  { month: "Apr", created: 520, closed: 260 },
-  { month: "May", created: 610, closed: 300 },
-  { month: "Jun", created: 720, closed: 340 },
-];
+// PIPELINE_DATA is now derived from real deals inside PipelineChart.
+
 
 type ActivityKind = "Meeting" | "Deal" | "Lead" | "Email";
 
@@ -156,21 +150,48 @@ function StatCard({ stat }: { stat: Stat }) {
 }
 
 function PipelineChart() {
+  const { data: deals = [] } = useDeals();
+
+  // Aggregate deals by created month → { created: sum(value), closed: sum(value where closed_won) }
+  const now = new Date();
+  const months: { key: string; label: string; created: number; closed: number }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      key: `${d.getFullYear()}-${d.getMonth()}`,
+      label: d.toLocaleString("en-US", { month: "short" }),
+      created: 0,
+      closed: 0,
+    });
+  }
+  const idx = new Map(months.map((m, i) => [m.key, i]));
+  for (const d of deals) {
+    const c = new Date(d.created_at as string);
+    const key = `${c.getFullYear()}-${c.getMonth()}`;
+    const i = idx.get(key);
+    if (i == null) continue;
+    const val = Math.round((Number(d.value) || 0) / 1000);
+    months[i].created += val;
+    if (d.stage === "closed_won") months[i].closed += val;
+  }
+
+  const rangeLabel = `${months[0].label} – ${months[months.length - 1].label}`;
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <div>
           <CardTitle>Pipeline Overview</CardTitle>
-          <p className="mt-1 text-xs text-muted-foreground">Last 6 months</p>
+          <p className="mt-1 text-xs text-muted-foreground">Last 6 months · live deal values</p>
         </div>
         <Badge variant="secondary" className="font-medium">
-          Jan – Jun
+          {rangeLabel}
         </Badge>
       </CardHeader>
       <CardContent className="pb-6">
         <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={PIPELINE_DATA} margin={{ top: 10, right: 12, left: -8, bottom: 0 }}>
+            <AreaChart data={months} margin={{ top: 10, right: 12, left: -8, bottom: 0 }}>
               <defs>
                 <linearGradient id="pipelineCreated" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#6366f1" stopOpacity={0.35} />
@@ -183,7 +204,7 @@ function PipelineChart() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis
-                dataKey="month"
+                dataKey="label"
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
                 tickLine={false}
@@ -232,6 +253,7 @@ function PipelineChart() {
     </Card>
   );
 }
+
 
 function RecentActivity() {
   const { data: tasks, isLoading } = useAITasks();

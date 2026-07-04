@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Bar,
@@ -36,6 +37,17 @@ import { withLoading } from "@/components/states/page-skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -215,8 +227,8 @@ const TRENDS = [
   },
 ];
 
-// Gallabox India ICP definition — drives Refresh Signals query.
-const ICP_KEYWORDS = ["D2C India", "EdTech India", "Fintech India", "WhatsApp Business API", "conversational commerce"];
+// ICP-driven keywords are now derived from the workspace ICP (industries + personas) inside handleRefresh.
+
 
 /* ─── Helpers ─── */
 
@@ -248,20 +260,66 @@ export const Route = createFileRoute("/_app/market-intelligence")({
   component: withLoading(MarketIntelligencePage, "dashboard"),
 });
 
+type IcpShape = {
+  industries: string;
+  sizes: string;
+  stage: string;
+  personas: string;
+  pain: string;
+};
+
+const DEFAULT_ICP: IcpShape = {
+  industries: "D2C · EdTech · Fintech (India)",
+  sizes: "50–500 employees",
+  stage: "Series A–D, mid-market",
+  personas: "Head of Growth / CMO / Founder",
+  pain: "Fragmented WhatsApp + email + CRM. Low reply rates. Manual routing.",
+};
+
+function useWorkspaceIcp(workspaceId?: string | null) {
+  return useQuery({
+    queryKey: ["workspace-icp", workspaceId],
+    enabled: !!workspaceId,
+    queryFn: async (): Promise<IcpShape> => {
+      const { data } = await supabase
+        .from("workspaces")
+        .select("icp")
+        .eq("id", workspaceId!)
+        .maybeSingle();
+      return { ...DEFAULT_ICP, ...((data?.icp as Partial<IcpShape>) ?? {}) };
+    },
+  });
+}
+
 function MarketIntelligencePage() {
   const [activeTab, setActiveTab] = useState<TabKey>("All");
   const { data: profile } = useProfile();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const workspaceId = profile?.workspace_id;
+  const { data: icp = DEFAULT_ICP } = useWorkspaceIcp(workspaceId);
   const [liveSignals, setLiveSignals] = useState<typeof SIGNAL_ROWS>(SIGNAL_ROWS);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [icpOpen, setIcpOpen] = useState(false);
+  const [icpDraft, setIcpDraft] = useState<IcpShape>(icp);
+
+  useEffect(() => { setIcpDraft(icp); }, [icp]);
+
+  const saveIcp = async () => {
+    if (!workspaceId) return;
+    const { error } = await supabase.from("workspaces").update({ icp: icpDraft }).eq("id", workspaceId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("ICP updated");
+    queryClient.invalidateQueries({ queryKey: ["workspace-icp", workspaceId] });
+    setIcpOpen(false);
+  };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
+    const query = [icp.industries, icp.personas, "WhatsApp Business API"].filter(Boolean);
     const { data } = await supabase.functions.invoke("fetch-signals", {
-      body: {
-        query: ICP_KEYWORDS,
-        workspaceId: profile?.workspace_id,
-      },
+      body: { query, workspaceId },
     });
     if (data?.signals?.length) {
       const mapped = data.signals.map((s: any) => ({
@@ -274,11 +332,22 @@ function MarketIntelligencePage() {
       }));
       setLiveSignals(mapped);
       setLastUpdated(new Date());
-      toast.success(`${data.signals.length} live signals refreshed for Gallabox India ICP`);
+      toast.success(`${data.signals.length} live signals refreshed for your ICP`);
     } else {
       toast.error("Signal fetch returned 0 — check Apollo/Intent provider quota");
     }
     setIsRefreshing(false);
+  };
+
+  const handleRowAction = (row: (typeof SIGNAL_ROWS)[number]) => {
+    if (row.action === "Outreach") {
+      toast.success(`Drafting outreach for ${row.company}`);
+      navigate({ to: "/outreach-studio" });
+    } else if (row.action === "Research") {
+      navigate({ to: "/lead-intelligence" });
+    } else {
+      toast.message(`Watching ${row.company} for updates`);
+    }
   };
 
   const filteredSignals =
@@ -294,8 +363,13 @@ function MarketIntelligencePage() {
         title="Market Intelligence"
         description="AI-powered signals on your market, competitors, and buyers."
         actions={
-          <Button size="sm" className="bg-indigo-600 text-white hover:bg-indigo-600/90">
-            <Zap className="h-4 w-4" />
+          <Button
+            size="sm"
+            className="bg-indigo-600 text-white hover:bg-indigo-600/90"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
             Run Research
           </Button>
         }
@@ -307,34 +381,41 @@ function MarketIntelligencePage() {
         <Card className="card-hover">
           <CardHeader className="flex-row items-start justify-between pb-2">
             <CardTitle className="text-sm font-semibold">Your ICP</CardTitle>
-            <Button size="icon" variant="ghost" className="h-7 w-7 -mr-2 -mt-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 -mr-2 -mt-2"
+              onClick={() => { setIcpDraft(icp); setIcpOpen(true); }}
+              title="Edit ICP"
+            >
               <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
             </Button>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center gap-2">
               <Briefcase className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium text-foreground">D2C · EdTech · Fintech (India)</span>
+              <span className="font-medium text-foreground">{icp.industries}</span>
             </div>
             <div className="flex items-center gap-2">
               <UsersIcon className="h-4 w-4 text-muted-foreground" />
-              <span className="text-foreground">50–500 employees</span>
+              <span className="text-foreground">{icp.sizes}</span>
             </div>
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-muted-foreground" />
-              <span className="text-foreground">Series A–D, mid-market</span>
+              <span className="text-foreground">{icp.stage}</span>
             </div>
             <div className="flex items-center gap-2">
               <SearchCheck className="h-4 w-4 text-muted-foreground" />
-              <span className="text-foreground">Head of Growth / CMO / Founder</span>
+              <span className="text-foreground">{icp.personas}</span>
             </div>
             <div className="rounded-lg border border-border bg-muted/40 p-3">
               <p className="text-xs text-muted-foreground">
-                Pain: Fragmented WhatsApp + email + CRM. Low reply rates. Manual routing.
+                Pain: {icp.pain}
               </p>
             </div>
           </CardContent>
         </Card>
+
 
         {/* Top Industries */}
         <Card className="card-hover">
@@ -523,6 +604,7 @@ function MarketIntelligencePage() {
                   <TableCell className="text-right">
                     <Button
                       size="sm"
+                      onClick={() => handleRowAction(row)}
                       className={cn("h-7 px-3 text-xs", actionButton(row.action))}
                     >
                       {row.action === "Outreach" && <Send className="mr-1 h-3 w-3" />}
@@ -608,6 +690,44 @@ function MarketIntelligencePage() {
           </div>
         </div>
       </div>
+
+      {/* ICP Editor Dialog */}
+      <Dialog open={icpOpen} onOpenChange={setIcpOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit ICP</DialogTitle>
+            <DialogDescription>
+              This drives Refresh Signals, competitor targeting, and AI outreach personalization.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 py-2">
+            <div className="grid gap-1.5">
+              <Label>Industries</Label>
+              <Input value={icpDraft.industries} onChange={(e) => setIcpDraft({ ...icpDraft, industries: e.target.value })} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Company sizes</Label>
+              <Input value={icpDraft.sizes} onChange={(e) => setIcpDraft({ ...icpDraft, sizes: e.target.value })} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Stage</Label>
+              <Input value={icpDraft.stage} onChange={(e) => setIcpDraft({ ...icpDraft, stage: e.target.value })} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Personas</Label>
+              <Input value={icpDraft.personas} onChange={(e) => setIcpDraft({ ...icpDraft, personas: e.target.value })} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Pain points</Label>
+              <Textarea rows={3} value={icpDraft.pain} onChange={(e) => setIcpDraft({ ...icpDraft, pain: e.target.value })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIcpOpen(false)}>Cancel</Button>
+            <Button className="bg-indigo-600 text-white hover:bg-indigo-700" onClick={saveIcp}>Save ICP</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

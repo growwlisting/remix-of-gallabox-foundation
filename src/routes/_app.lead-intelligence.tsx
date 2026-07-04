@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-auth";
 import {
@@ -136,9 +137,62 @@ function LeadIntelligencePage() {
   const { data: contacts, isLoading } = useContacts();
   const { data: profile } = useProfile();
   const queryClient = useQueryClient();
-  const leads: Lead[] = (contacts ?? []).map(contactToLead);
+  const navigate = useNavigate();
+  const allLeads: Lead[] = (contacts ?? []).map(contactToLead);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = leads.find((l) => l.id === selectedId) ?? null;
+
+  // Filter state
+  const [q, setQ] = useState("");
+  const [industry, setIndustry] = useState<string>("all");
+  const [size, setSize] = useState<string>("all");
+  const [scoreBand, setScoreBand] = useState<string>("all");
+  const [signalType, setSignalType] = useState<string>("all");
+
+  // Company → industry heuristic for demo data
+  const industryFor = (company: string) => {
+    const c = company.toLowerCase();
+    if (/ramp|cred|razorpay|stripe|fintech/.test(c)) return "fintech";
+    if (/vercel|linear|retool|figma|notion|airtable|loom/.test(c)) return "devtools";
+    if (/mamaearth|boat|nykaa|meesho|zepto|d2c/.test(c)) return "ecommerce";
+    return "saas";
+  };
+
+  const leads = useMemo(() => {
+    return allLeads.filter((l) => {
+      if (q && !`${l.name} ${l.company} ${l.title}`.toLowerCase().includes(q.toLowerCase()))
+        return false;
+      if (industry !== "all" && industryFor(l.company) !== industry) return false;
+      if (scoreBand === "hot" && l.score < 80) return false;
+      if (scoreBand === "warm" && (l.score < 50 || l.score >= 80)) return false;
+      if (scoreBand === "cold" && l.score >= 50) return false;
+      if (signalType !== "all" && !l.signals.some((s) => s.tone === signalType)) return false;
+      // size filter is a UX-only placeholder for demo contacts (no size field)
+      if (size !== "all") return true;
+      return true;
+    });
+  }, [allLeads, q, industry, scoreBand, signalType, size]);
+
+  const selected = leads.find((l) => l.id === selectedId) ?? allLeads.find((l) => l.id === selectedId) ?? null;
+
+  const clearFilters = () => {
+    setQ(""); setIndustry("all"); setSize("all"); setScoreBand("all"); setSignalType("all");
+  };
+
+  const addLeadToPipeline = async (lead: Lead) => {
+    if (!profile?.workspace_id) return;
+    const { error } = await supabase.from("deals").insert({
+      workspace_id: profile.workspace_id,
+      company_name: lead.company || lead.name,
+      value: null,
+      stage: "prospecting",
+      channels: ["email"],
+      days_in_stage: 0,
+      ai_signal: `From lead: ${lead.name}`,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${lead.company || lead.name} added to pipeline`);
+    queryClient.invalidateQueries({ queryKey: ["deals", profile.workspace_id] });
+  };
 
   useEffect(() => {
     const seed = async () => {
@@ -170,6 +224,7 @@ function LeadIntelligencePage() {
 
 
 
+
   return (
     <>
       <PageHeader
@@ -197,9 +252,9 @@ function LeadIntelligencePage() {
       <div className="mt-6 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[220px] flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search leads..." className="pl-9" />
+          <Input placeholder="Search leads..." className="pl-9" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <Select>
+        <Select value={industry} onValueChange={setIndustry}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Industry" />
           </SelectTrigger>
@@ -211,7 +266,7 @@ function LeadIntelligencePage() {
             <SelectItem value="ecommerce">E-commerce</SelectItem>
           </SelectContent>
         </Select>
-        <Select>
+        <Select value={size} onValueChange={setSize}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Company size" />
           </SelectTrigger>
@@ -223,7 +278,7 @@ function LeadIntelligencePage() {
             <SelectItem value="1000+">1,000+</SelectItem>
           </SelectContent>
         </Select>
-        <Select>
+        <Select value={scoreBand} onValueChange={setScoreBand}>
           <SelectTrigger className="w-[170px]">
             <SelectValue placeholder="Lead score" />
           </SelectTrigger>
@@ -234,7 +289,7 @@ function LeadIntelligencePage() {
             <SelectItem value="cold">Cold · &lt;50</SelectItem>
           </SelectContent>
         </Select>
-        <Select>
+        <Select value={signalType} onValueChange={setSignalType}>
           <SelectTrigger className="w-[170px]">
             <SelectValue placeholder="Signal type" />
           </SelectTrigger>
@@ -249,11 +304,14 @@ function LeadIntelligencePage() {
         <Button
           variant="link"
           size="sm"
+          onClick={clearFilters}
           className="text-muted-foreground hover:text-foreground"
         >
           Clear filters
         </Button>
+        <span className="ml-auto text-xs text-muted-foreground">{leads.length} of {allLeads.length}</span>
       </div>
+
 
       {/* Table */}
       {isLoading ? (
@@ -369,10 +427,10 @@ function LeadIntelligencePage() {
                       <Button size="icon" variant="ghost" title="Research" onClick={() => setSelectedId(lead.id)}>
                         <Search className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" title="Outreach">
+                      <Button size="icon" variant="ghost" title="Draft outreach" onClick={() => navigate({ to: "/outreach-studio" })}>
                         <Send className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" title="Add to campaign">
+                      <Button size="icon" variant="ghost" title="Add to pipeline" onClick={() => addLeadToPipeline(lead)}>
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -386,7 +444,14 @@ function LeadIntelligencePage() {
 
       <Sheet open={!!selectedId} onOpenChange={(open) => !open && setSelectedId(null)}>
         <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-md">
-          {selected && <LeadDetailPanel lead={selected} />}
+          {selected && (
+            <LeadDetailPanel
+              lead={selected}
+              onDraftOutreach={() => navigate({ to: "/outreach-studio" })}
+              onAddToCampaign={() => navigate({ to: "/campaign-studio" })}
+              onAddToPipeline={() => addLeadToPipeline(selected)}
+            />
+          )}
         </SheetContent>
       </Sheet>
     </>
@@ -431,7 +496,17 @@ function deriveBuyingSignals(lead: Lead) {
   return out;
 }
 
-function LeadDetailPanel({ lead }: { lead: Lead }) {
+function LeadDetailPanel({
+  lead,
+  onDraftOutreach,
+  onAddToCampaign,
+  onAddToPipeline,
+}: {
+  lead: Lead;
+  onDraftOutreach?: () => void;
+  onAddToCampaign?: () => void;
+  onAddToPipeline?: () => void;
+}) {
   const breakdown = deriveBreakdown(lead);
   const buyingSignals = deriveBuyingSignals(lead);
 
@@ -514,13 +589,17 @@ function LeadDetailPanel({ lead }: { lead: Lead }) {
       </div>
 
       <div className="space-y-2 border-t border-border p-5">
-        <Button className="w-full bg-indigo-600 text-white hover:bg-indigo-600/90">
+        <Button className="w-full bg-indigo-600 text-white hover:bg-indigo-600/90" onClick={onDraftOutreach}>
           <Send className="h-4 w-4" />
           Draft Outreach
         </Button>
-        <Button variant="outline" className="w-full">
+        <Button variant="outline" className="w-full" onClick={onAddToCampaign}>
           <Plus className="h-4 w-4" />
           Add to Campaign
+        </Button>
+        <Button variant="outline" className="w-full" onClick={onAddToPipeline}>
+          <TrendingUp className="h-4 w-4" />
+          Add to Pipeline (CRM)
         </Button>
       </div>
     </div>
