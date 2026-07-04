@@ -205,6 +205,54 @@ export function useAITasks() {
   return query;
 }
 
+export type WorkflowRow = {
+  id: string;
+  name: string;
+  status: string;
+  trigger_label: string;
+  metric_label: string;
+  steps: number;
+  template_key: string | null;
+  last_run_at: string | null;
+  created_at: string;
+};
+
+export function useWorkflows() {
+  const { data: profile } = useProfile();
+  const workspaceId = profile?.workspace_id;
+
+  const query = useQuery({
+    queryKey: ["workflows", workspaceId],
+    enabled: !!workspaceId,
+    queryFn: async (): Promise<WorkflowRow[]> => {
+      const { data, error } = await supabase
+        .from("workflows")
+        .select("id, name, status, trigger_label, metric_label, steps, template_key, last_run_at, created_at")
+        .eq("workspace_id", workspaceId!)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as WorkflowRow[];
+    },
+  });
+
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (typeof window === "undefined" || !workspaceId) return;
+    const channel = supabase
+      .channel(`workflows-${Math.random().toString(36).slice(2, 7)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "workflows" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["workflows", workspaceId] });
+      })
+      .subscribe();
+    return () => {
+      channel.unsubscribe();
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient, workspaceId]);
+
+  return query;
+}
+
 /** Live ai_tasks filtered to status = 'running' or 'queued'. */
 export function useRealtimeAITasks() {
   const { data, ...rest } = useAITasks();
