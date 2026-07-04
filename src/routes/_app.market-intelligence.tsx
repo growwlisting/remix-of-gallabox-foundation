@@ -51,19 +51,19 @@ import { useProfile } from "@/hooks/use-auth";
 
 const meta = getRouteMeta("/market-intelligence")!;
 
-/* ─── Data ─── */
+/* ─── Data (Gallabox India workspace defaults) ─── */
 
 const INDUSTRY_DATA = [
-  { name: "SaaS", score: 94 },
-  { name: "Fintech", score: 87 },
-  { name: "DevTools", score: 81 },
-  { name: "MarTech", score: 76 },
-  { name: "HR Tech", score: 68 },
+  { name: "D2C / Ecommerce", score: 94 },
+  { name: "EdTech", score: 88 },
+  { name: "Fintech", score: 82 },
+  { name: "Healthcare", score: 74 },
+  { name: "Real Estate", score: 66 },
 ];
 
 const SIZE_DATA = [
-  { name: "50-100", value: 35 },
-  { name: "101-250", value: 40 },
+  { name: "50-100", value: 30 },
+  { name: "101-250", value: 45 },
   { name: "251-500", value: 25 },
 ];
 const SIZE_COLORS = ["#818cf8", "#6366f1", "#4f46e5"];
@@ -71,138 +71,152 @@ const SIZE_COLORS = ["#818cf8", "#6366f1", "#4f46e5"];
 const TAB_LIST = ["All", "Hiring", "Funding", "Tech Stack", "Intent"] as const;
 type TabKey = (typeof TAB_LIST)[number];
 
+// Fallback signals shown before Refresh — India-first, Gallabox-relevant.
 const SIGNAL_ROWS = [
   {
-    company: "Notion",
-    signal: "Hired 3 SDRs this month",
+    company: "Mamaearth",
+    signal: "Hiring 4 CX leads (Bengaluru)",
     type: "Hiring",
     strength: "High",
     detected: "2h ago",
     action: "Outreach",
   },
   {
-    company: "Linear",
-    signal: "Series B $35M announced",
+    company: "boAt Lifestyle",
+    signal: "Series F extension announced",
     type: "Funding",
     strength: "High",
     detected: "5h ago",
     action: "Outreach",
   },
   {
-    company: "Figma",
-    signal: "Added Salesforce to stack",
+    company: "upGrad",
+    signal: "Added WhatsApp Business API to stack",
     type: "Tech Stack",
-    strength: "Medium",
+    strength: "High",
     detected: "1d ago",
-    action: "Research",
+    action: "Outreach",
   },
   {
-    company: "Vercel",
-    signal: "Visited your pricing 4x",
+    company: "Cred",
+    signal: "Visited your pricing 4x this week",
     type: "Intent",
     strength: "High",
     detected: "3h ago",
     action: "Outreach",
   },
   {
-    company: "Stripe",
-    signal: "VP Sales job posting",
+    company: "Nykaa",
+    signal: "Head of Conversational Commerce hired",
     type: "Hiring",
     strength: "Medium",
     detected: "2d ago",
     action: "Watch",
   },
   {
-    company: "Airtable",
-    signal: "Competitor contract expiring",
+    company: "Meesho",
+    signal: "Migrating off Freshworks — RFP open",
     type: "Intent",
     strength: "High",
     detected: "6h ago",
     action: "Outreach",
   },
   {
-    company: "Loom",
-    signal: "Series C fundraising signals",
+    company: "PhysicsWallah",
+    signal: "Series D fundraising rumored",
     type: "Funding",
     strength: "Medium",
     detected: "3d ago",
     action: "Research",
   },
   {
-    company: "Retool",
-    signal: "Tech stack gap detected",
+    company: "Zepto",
+    signal: "Uses Interakt — potential swap window",
     type: "Tech Stack",
-    strength: "Low",
+    strength: "Medium",
     detected: "4d ago",
-    action: "Watch",
+    action: "Research",
   },
 ];
 
 const COMPETITORS = [
   {
-    name: "Outreach.io",
-    tagline: "Legacy sales engagement platform",
+    name: "Wati",
+    tagline: "WhatsApp API SaaS, SMB-focused",
     weaknesses: [
-      "Expensive per-seat pricing",
-      "No WhatsApp channel",
-      "Weak AI personalization",
+      "Weak AI-native workflows",
+      "Basic broadcast tooling, no revenue OS",
+      "Limited CRM & pipeline features",
     ],
-    winRate: 67,
+    winRate: 68,
   },
   {
-    name: "Apollo.io",
-    tagline: "Data-first prospecting tool",
+    name: "AiSensy",
+    tagline: "WhatsApp marketing platform, India",
     weaknesses: [
-      "Shallow workflow automation",
-      "No meeting intelligence",
-      "CRM sync issues reported",
+      "Marketing-only — no sales/CS depth",
+      "Shallow chatbot builder",
+      "No native lead scoring or ICP intel",
     ],
-    winRate: 54,
+    winRate: 72,
   },
   {
-    name: "Salesloft",
-    tagline: "Enterprise engagement suite",
+    name: "Interakt",
+    tagline: "Jio Haptik-owned WhatsApp suite",
     weaknesses: [
-      "Long onboarding (3-6 months)",
-      "Rigid sequence templates",
-      "Limited AI agent support",
+      "Rigid pricing tiers",
+      "Slow API roadmap since acquisition",
+      "Weak reporting for revenue teams",
     ],
-    winRate: 71,
+    winRate: 64,
+  },
+  {
+    name: "DoubleTick",
+    tagline: "Team inbox for WhatsApp",
+    weaknesses: [
+      "Inbox-first — no outbound engine",
+      "No AI SDR or campaign automation",
+      "Limited to shared-inbox use cases",
+    ],
+    winRate: 76,
   },
 ];
 
 const TRENDS = [
   {
-    icon: TrendingUp,
-    title: "AI SDR adoption up 340% YoY",
-    description: "Teams deploying AI reps are scaling pipeline 3× faster.",
-    tint: "text-indigo-500 bg-indigo-500/10",
-  },
-  {
     icon: MessageSquare,
-    title: "WhatsApp outreach 3× reply rate vs email",
-    description: "Enterprise buyers are shifting to conversational channels.",
+    title: "WhatsApp is now default channel for Indian D2C",
+    description: "82% of Indian D2C brands run primary customer journeys on WhatsApp.",
     tint: "text-emerald-500 bg-emerald-500/10",
   },
   {
+    icon: TrendingUp,
+    title: "AI-assisted outreach adoption +340% YoY in India",
+    description: "GTM teams using AI copilots are booking 3× more qualified meetings.",
+    tint: "text-indigo-500 bg-indigo-500/10",
+  },
+  {
     icon: Globe,
-    title: "APAC buying committees growing 28%",
-    description: "Average deal now involves 6.4 stakeholders in APAC.",
+    title: "EdTech + Fintech buyer committees growing 28%",
+    description: "Average Indian mid-market deal now involves 5.8 stakeholders.",
     tint: "text-sky-500 bg-sky-500/10",
   },
   {
     icon: Target,
     title: "Intent data accuracy gap narrowing",
-    description: "AI-curated signals now 89% correlated with closed-won.",
+    description: "AI-curated signals now 89% correlated with closed-won in APAC.",
     tint: "text-violet-500 bg-violet-500/10",
   },
   {
     icon: AlertTriangle,
-    title: "Email volume fatigue at all-time high",
-    description: "Personalized 1:1 outreach is the only rising open-rate lever.",
+    title: "Email open rates in India at 18% and falling",
+    description: "WhatsApp + LinkedIn are the only channels with rising response rates.",
     tint: "text-amber-500 bg-amber-500/10",
   },
 ];
+
+// Gallabox India ICP definition — drives Refresh Signals query.
+const ICP_KEYWORDS = ["D2C India", "EdTech India", "Fintech India", "WhatsApp Business API", "conversational commerce"];
 
 /* ─── Helpers ─── */
 
