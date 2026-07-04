@@ -42,8 +42,7 @@ import { useAITasks } from "@/hooks/use-growth-data";
 import { useProfile } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useEffect, useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 const meta = getRouteMeta("/ai-command-center")!;
 
@@ -149,12 +148,12 @@ const ACTIVITY_STATUS: Record<ActivityStatus, string> = {
 function AICommandCenterPage() {
   const { data: tasks, isLoading: tasksLoading } = useAITasks();
   const { data: profile } = useProfile();
-  const queryClient = useQueryClient();
   const completed = 5;
   const total = 18;
   const progress = (completed / total) * 100;
 
   // Mock ai_tasks seeder removed — AI Command Center now shows real agent runs only.
+
 
 
   const runningAgents = useMemo(() => {

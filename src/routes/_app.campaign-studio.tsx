@@ -1,7 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-auth";
 import {
   Plus,
@@ -277,9 +274,9 @@ function relTimeShort(iso: string): string {
 function CampaignStudioPage() {
   const { data: rows, isLoading } = useCampaigns();
   const { data: profile } = useProfile();
-  const queryClient = useQueryClient();
 
   // Mock campaign seeder removed — Campaign Studio now shows real workspace data only.
+
 
   const campaigns: Campaign[] = (rows ?? []).map((r) => {
     const status = (["Active", "Draft", "Paused"].includes(r.status)
