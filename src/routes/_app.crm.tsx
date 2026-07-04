@@ -696,25 +696,8 @@ function DealDetail({
         />
       </div>
 
-      <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Activity
-        </p>
-        <ul className="space-y-2 text-sm">
-          <li className="flex items-center justify-between rounded-md bg-muted/40 px-3 py-2">
-            <span>📧 Email sent</span>
-            <span className="text-xs text-muted-foreground">2d ago</span>
-          </li>
-          <li className="flex items-center justify-between rounded-md bg-muted/40 px-3 py-2">
-            <span>🔗 LinkedIn connected</span>
-            <span className="text-xs text-muted-foreground">5d ago</span>
-          </li>
-          <li className="flex items-center justify-between rounded-md bg-muted/40 px-3 py-2">
-            <span>👀 Visited pricing page</span>
-            <span className="text-xs text-muted-foreground">1w ago</span>
-          </li>
-        </ul>
-      </div>
+      <DealActivityFeed dealId={deal.id} workspaceId={workspaceId} />
+
 
       <div className="flex flex-col gap-2 pt-2">
         <Button
