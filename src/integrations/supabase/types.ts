@@ -164,6 +164,57 @@ export type Database = {
           },
         ]
       }
+      deal_activities: {
+        Row: {
+          action: string
+          actor_name: string | null
+          actor_type: string
+          created_at: string
+          deal_id: string
+          description: string | null
+          id: string
+          metadata: Json
+          workspace_id: string
+        }
+        Insert: {
+          action: string
+          actor_name?: string | null
+          actor_type: string
+          created_at?: string
+          deal_id: string
+          description?: string | null
+          id?: string
+          metadata?: Json
+          workspace_id: string
+        }
+        Update: {
+          action?: string
+          actor_name?: string | null
+          actor_type?: string
+          created_at?: string
+          deal_id?: string
+          description?: string | null
+          id?: string
+          metadata?: Json
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_activities_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_activities_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deals: {
         Row: {
           ai_signal: string | null
@@ -171,10 +222,12 @@ export type Database = {
           company_name: string | null
           contact_id: string | null
           created_at: string
+          created_by: string | null
           days_in_stage: number
           id: string
           notes: string | null
           stage: string
+          stage_entered_at: string
           value: number | null
           workspace_id: string
         }
@@ -184,10 +237,12 @@ export type Database = {
           company_name?: string | null
           contact_id?: string | null
           created_at?: string
+          created_by?: string | null
           days_in_stage?: number
           id?: string
           notes?: string | null
           stage?: string
+          stage_entered_at?: string
           value?: number | null
           workspace_id: string
         }
@@ -197,10 +252,12 @@ export type Database = {
           company_name?: string | null
           contact_id?: string | null
           created_at?: string
+          created_by?: string | null
           days_in_stage?: number
           id?: string
           notes?: string | null
           stage?: string
+          stage_entered_at?: string
           value?: number | null
           workspace_id?: string
         }
@@ -556,6 +613,14 @@ export type Database = {
         Returns: string
       }
       current_workspace_id: { Args: never; Returns: string }
+      deal_days_in_stage: {
+        Args: { _stage_entered_at: string }
+        Returns: number
+      }
+      promote_contact_to_deal: {
+        Args: { _contact_id: string; _value?: number }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
