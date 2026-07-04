@@ -690,6 +690,44 @@ function MarketIntelligencePage() {
           </div>
         </div>
       </div>
+
+      {/* ICP Editor Dialog */}
+      <Dialog open={icpOpen} onOpenChange={setIcpOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit ICP</DialogTitle>
+            <DialogDescription>
+              This drives Refresh Signals, competitor targeting, and AI outreach personalization.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 py-2">
+            <div className="grid gap-1.5">
+              <Label>Industries</Label>
+              <Input value={icpDraft.industries} onChange={(e) => setIcpDraft({ ...icpDraft, industries: e.target.value })} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Company sizes</Label>
+              <Input value={icpDraft.sizes} onChange={(e) => setIcpDraft({ ...icpDraft, sizes: e.target.value })} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Stage</Label>
+              <Input value={icpDraft.stage} onChange={(e) => setIcpDraft({ ...icpDraft, stage: e.target.value })} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Personas</Label>
+              <Input value={icpDraft.personas} onChange={(e) => setIcpDraft({ ...icpDraft, personas: e.target.value })} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Pain points</Label>
+              <Textarea rows={3} value={icpDraft.pain} onChange={(e) => setIcpDraft({ ...icpDraft, pain: e.target.value })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIcpOpen(false)}>Cancel</Button>
+            <Button className="bg-indigo-600 text-white hover:bg-indigo-700" onClick={saveIcp}>Save ICP</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
