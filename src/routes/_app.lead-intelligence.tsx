@@ -137,9 +137,62 @@ function LeadIntelligencePage() {
   const { data: contacts, isLoading } = useContacts();
   const { data: profile } = useProfile();
   const queryClient = useQueryClient();
-  const leads: Lead[] = (contacts ?? []).map(contactToLead);
+  const navigate = useNavigate();
+  const allLeads: Lead[] = (contacts ?? []).map(contactToLead);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = leads.find((l) => l.id === selectedId) ?? null;
+
+  // Filter state
+  const [q, setQ] = useState("");
+  const [industry, setIndustry] = useState<string>("all");
+  const [size, setSize] = useState<string>("all");
+  const [scoreBand, setScoreBand] = useState<string>("all");
+  const [signalType, setSignalType] = useState<string>("all");
+
+  // Company → industry heuristic for demo data
+  const industryFor = (company: string) => {
+    const c = company.toLowerCase();
+    if (/ramp|cred|razorpay|stripe|fintech/.test(c)) return "fintech";
+    if (/vercel|linear|retool|figma|notion|airtable|loom/.test(c)) return "devtools";
+    if (/mamaearth|boat|nykaa|meesho|zepto|d2c/.test(c)) return "ecommerce";
+    return "saas";
+  };
+
+  const leads = useMemo(() => {
+    return allLeads.filter((l) => {
+      if (q && !`${l.name} ${l.company} ${l.title}`.toLowerCase().includes(q.toLowerCase()))
+        return false;
+      if (industry !== "all" && industryFor(l.company) !== industry) return false;
+      if (scoreBand === "hot" && l.score < 80) return false;
+      if (scoreBand === "warm" && (l.score < 50 || l.score >= 80)) return false;
+      if (scoreBand === "cold" && l.score >= 50) return false;
+      if (signalType !== "all" && !l.signals.some((s) => s.tone === signalType)) return false;
+      // size filter is a UX-only placeholder for demo contacts (no size field)
+      if (size !== "all") return true;
+      return true;
+    });
+  }, [allLeads, q, industry, scoreBand, signalType, size]);
+
+  const selected = leads.find((l) => l.id === selectedId) ?? allLeads.find((l) => l.id === selectedId) ?? null;
+
+  const clearFilters = () => {
+    setQ(""); setIndustry("all"); setSize("all"); setScoreBand("all"); setSignalType("all");
+  };
+
+  const addLeadToPipeline = async (lead: Lead) => {
+    if (!profile?.workspace_id) return;
+    const { error } = await supabase.from("deals").insert({
+      workspace_id: profile.workspace_id,
+      company_name: lead.company || lead.name,
+      value: null,
+      stage: "prospecting",
+      channels: ["email"],
+      days_in_stage: 0,
+      ai_signal: `From lead: ${lead.name}`,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${lead.company || lead.name} added to pipeline`);
+    queryClient.invalidateQueries({ queryKey: ["deals", profile.workspace_id] });
+  };
 
   useEffect(() => {
     const seed = async () => {
@@ -168,6 +221,7 @@ function LeadIntelligencePage() {
     seed();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.workspace_id]);
+
 
 
 
