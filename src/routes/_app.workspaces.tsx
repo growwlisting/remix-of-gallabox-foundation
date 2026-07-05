@@ -627,6 +627,32 @@ function WorkspacesPage() {
     queryClient.invalidateQueries({ queryKey: ["all-workspaces"] });
   };
 
+  const handleLeave = async (id: string) => {
+    if (!profile?.id) return;
+    const others = workspaces.filter((w) => w.id !== id);
+    if (others.length === 0) {
+      toast.error("You must belong to at least one workspace");
+      return;
+    }
+    const wasActive = profile.workspace_id === id;
+    if (wasActive) {
+      const target = others[0].id;
+      const { error } = await supabase.from("profiles").update({ workspace_id: target }).eq("id", profile.id);
+      if (error) {
+        toast.error(`Could not leave: ${error.message}`);
+        return;
+      }
+    }
+    // Decrement member_count on the left workspace (best-effort)
+    const left = workspaces.find((w) => w.id === id);
+    if (left) {
+      await supabase.from("workspaces").update({ member_count: Math.max(0, left.members - 1) }).eq("id", id);
+    }
+    toast.success("Left workspace");
+    queryClient.invalidateQueries({ queryKey: ["profile"] });
+    queryClient.invalidateQueries({ queryKey: ["all-workspaces"] });
+  };
+
 
   return (
     <div className="space-y-8">
