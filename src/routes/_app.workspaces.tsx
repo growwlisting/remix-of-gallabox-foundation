@@ -160,8 +160,14 @@ function WorkspaceCard({
                     <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setMembersOpen(true); }}>
                       Members
                     </DropdownMenuItem>
-                    <DropdownMenuItem disabled>Settings</DropdownMenuItem>
-                    <DropdownMenuItem disabled className="text-destructive focus:text-destructive">
+                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setSettingsOpen(true); }}>
+                      Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={(e) => { e.preventDefault(); setLeaveOpen(true); }}
+                      disabled={otherWorkspaceCount === 0}
+                      className="text-destructive focus:text-destructive"
+                    >
                       Leave workspace
                     </DropdownMenuItem>
                   </DropdownMenuContent>
