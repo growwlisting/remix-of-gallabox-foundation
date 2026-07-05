@@ -255,7 +255,138 @@ function WorkspaceCard({
           </div>
         </DialogContent>
       </Dialog>
+
+      <WorkspaceSettingsDialog
+        workspaceId={workspace.id}
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+      />
+
+      <AlertDialog open={leaveOpen} onOpenChange={setLeaveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave "{workspace.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You'll lose access to this workspace's data. You can be re-invited later.
+              {workspace.active && " You'll be switched to another workspace you belong to."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => onLeave(workspace.id)}
+            >
+              Leave workspace
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
+  );
+}
+
+function WorkspaceSettingsDialog({
+  workspaceId,
+  open,
+  onOpenChange,
+}: {
+  workspaceId: string;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const queryClient = useQueryClient();
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ name: "", description: "", sender_name: "", sender_email: "" });
+
+  const { data: ws } = useQuery({
+    enabled: open,
+    queryKey: ["ws-settings", workspaceId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workspaces")
+        .select("id, name, description, sender_name, sender_email")
+        .eq("id", workspaceId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Sync form when data loads
+  if (ws && form.name === "" && ws.name) {
+    // one-shot initialization
+    queueMicrotask(() =>
+      setForm({
+        name: ws.name ?? "",
+        description: ws.description ?? "",
+        sender_name: ws.sender_name ?? "",
+        sender_email: ws.sender_email ?? "",
+      }),
+    );
+  }
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim()) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("workspaces")
+      .update({
+        name: form.name.trim(),
+        description: form.description.trim() || null,
+        sender_name: form.sender_name.trim() || null,
+        sender_email: form.sender_email.trim() || null,
+      })
+      .eq("id", workspaceId);
+    setSaving(false);
+    if (error) {
+      toast.error(`Save failed: ${error.message}`);
+      return;
+    }
+    toast.success("Workspace settings saved");
+    queryClient.invalidateQueries({ queryKey: ["all-workspaces"] });
+    queryClient.invalidateQueries({ queryKey: ["ws-settings", workspaceId] });
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) setForm({ name: "", description: "", sender_name: "", sender_email: "" }); onOpenChange(v); }}>
+      <DialogContent className="sm:max-w-lg">
+        <form onSubmit={handleSave}>
+          <DialogHeader>
+            <DialogTitle>Workspace settings</DialogTitle>
+            <DialogDescription>Update workspace name, description, and sender identity.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="ws-name">Workspace name</Label>
+              <Input id="ws-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="ws-desc">Description</Label>
+              <Textarea id="ws-desc" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-2">
+                <Label htmlFor="ws-sname">Sender name</Label>
+                <Input id="ws-sname" value={form.sender_name} placeholder="Jane from Acme" onChange={(e) => setForm({ ...form, sender_name: e.target.value })} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="ws-semail">Sender email</Label>
+                <Input id="ws-semail" type="email" value={form.sender_email} placeholder="jane@acme.com" onChange={(e) => setForm({ ...form, sender_email: e.target.value })} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" className="bg-indigo-600 text-white hover:bg-indigo-700" disabled={saving || !form.name.trim()}>
+              {saving ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
