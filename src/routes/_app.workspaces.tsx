@@ -95,11 +95,17 @@ function WorkspaceAvatar({ workspace }: { workspace: Workspace }) {
 function WorkspaceCard({
   workspace,
   onActivate,
+  onLeave,
+  otherWorkspaceCount,
 }: {
   workspace: Workspace;
   onActivate: (id: string) => void;
+  onLeave: (id: string) => void;
+  otherWorkspaceCount: number;
 }) {
   const [membersOpen, setMembersOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
   const { data: members = [] } = useQuery({
     enabled: membersOpen,
     queryKey: ["ws-members", workspace.id],
