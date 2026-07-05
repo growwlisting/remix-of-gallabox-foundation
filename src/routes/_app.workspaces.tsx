@@ -672,7 +672,13 @@ function WorkspacesPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
           {workspaces.map((workspace) => (
-            <WorkspaceCard key={workspace.id} workspace={workspace} onActivate={handleActivate} />
+            <WorkspaceCard
+              key={workspace.id}
+              workspace={workspace}
+              onActivate={handleActivate}
+              onLeave={handleLeave}
+              otherWorkspaceCount={workspaces.length - 1}
+            />
           ))}
         </div>
       )}
