@@ -617,6 +617,7 @@ export type Database = {
           org_id: string | null
           sender_email: string | null
           sender_name: string | null
+          settings: Json
         }
         Insert: {
           created_at?: string
@@ -628,6 +629,7 @@ export type Database = {
           org_id?: string | null
           sender_email?: string | null
           sender_name?: string | null
+          settings?: Json
         }
         Update: {
           created_at?: string
@@ -639,6 +641,7 @@ export type Database = {
           org_id?: string | null
           sender_email?: string | null
           sender_name?: string | null
+          settings?: Json
         }
         Relationships: [
           {
