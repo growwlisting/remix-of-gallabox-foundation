@@ -13,7 +13,7 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Calendar,
-  DollarSign,
+  IndianRupee,
   Flame,
   Sparkles,
   Target,
@@ -363,7 +363,7 @@ function DashboardPage() {
       iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary", href: "/lead-intelligence" },
     { label: "Meetings Booked", value: String(meetingsBooked), change: 0, icon: Calendar,
       iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary", href: "/campaign-studio" },
-    { label: "Won This Month", value: fmt(wonThisMonth), change: 0, icon: DollarSign,
+    { label: "Won This Month", value: fmt(wonThisMonth), change: 0, icon: IndianRupee,
       iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary", href: "/analytics" },
   ];
 
