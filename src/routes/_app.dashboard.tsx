@@ -36,7 +36,7 @@ const meta = getRouteMeta("/dashboard")!;
 export const Route = createFileRoute("/_app/dashboard")({
   head: () => ({
     meta: [
-      { title: `${meta.label} · Gallabox GrowthOS` },
+      { title: `₹{meta.label} · Gallabox GrowthOS` },
       { name: "description", content: meta.description },
     ],
   }),
@@ -158,7 +158,7 @@ function PipelineChart() {
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     months.push({
-      key: `${d.getFullYear()}-${d.getMonth()}`,
+      key: `₹{d.getFullYear()}-${d.getMonth()}`,
       label: d.toLocaleString("en-US", { month: "short" }),
       created: 0,
       closed: 0,
@@ -167,7 +167,7 @@ function PipelineChart() {
   const idx = new Map(months.map((m, i) => [m.key, i]));
   for (const d of deals) {
     const c = new Date(d.created_at as string);
-    const key = `${c.getFullYear()}-${c.getMonth()}`;
+    const key = `₹{c.getFullYear()}-${c.getMonth()}`;
     const i = idx.get(key);
     if (i == null) continue;
     const val = Math.round((Number(d.value) || 0) / 1000);
@@ -175,7 +175,7 @@ function PipelineChart() {
     if (d.stage === "closed_won") months[i].closed += val;
   }
 
-  const rangeLabel = `${months[0].label} – ${months[months.length - 1].label}`;
+  const rangeLabel = `₹{months[0].label} – ${months[months.length - 1].label}`;
 
   return (
     <Card>
@@ -215,7 +215,7 @@ function PipelineChart() {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(v) => `$${v}k`}
+                tickFormatter={(v) => `₹${v}k`}
               />
               <Tooltip
                 contentStyle={{
@@ -224,7 +224,7 @@ function PipelineChart() {
                   borderRadius: 8,
                   fontSize: 12,
                 }}
-                formatter={(value: number) => [`$${value}k`, ""]}
+                formatter={(value: number) => [`₹${value}k`, ""]}
               />
               <Legend
                 iconType="circle"
@@ -354,7 +354,7 @@ function DashboardPage() {
     .reduce((s, d) => s + (Number(d.value) || 0), 0);
   const meetingsBooked = campaigns.reduce((s, c) => s + (c.meetings_count || 0), 0);
   const fmt = (n: number) =>
-    n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` : n >= 1_000 ? `$${Math.round(n / 1_000)}K` : `$${n}`;
+    n >= 1_000_000 ? `₹${(n / 1_000_000).toFixed(1)}M` : n >= 1_000 ? `₹${Math.round(n / 1_000)}K` : `₹${n}`;
 
   const liveStats: Stat[] = [
     { label: "Pipeline Value", value: fmt(pipelineValue), change: 0, icon: TrendingUp,

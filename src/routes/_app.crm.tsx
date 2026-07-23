@@ -91,9 +91,9 @@ const CHANNEL_OPTIONS = [
 
 function formatValue(n: number | null | undefined): string {
   if (n == null) return "—";
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
-  return `$${n}`;
+  if (n >= 1_000_000) return `₹${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `₹${(n / 1_000).toFixed(0)}K`;
+  return `₹${n}`;
 }
 
 function ChannelIcon({ type }: { type: string }) {
@@ -104,7 +104,7 @@ function ChannelIcon({ type }: { type: string }) {
 export const Route = createFileRoute("/_app/crm")({
   head: () => ({
     meta: [
-      { title: `${meta.label} · Gallabox GrowthOS` },
+      { title: `₹{meta.label} · Gallabox GrowthOS` },
       { name: "description", content: meta.description },
     ],
   }),
@@ -758,11 +758,11 @@ function actorEmoji(actor_type: string, action: string) {
 function relTime(iso: string) {
   const m = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
   if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
+  if (m < 60) return `₹{m}m ago`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
+  if (h < 24) return `₹{h}h ago`;
   const d = Math.floor(h / 24);
-  return `${d}d ago`;
+  return `₹{d}d ago`;
 }
 
 function DealActivityFeed({

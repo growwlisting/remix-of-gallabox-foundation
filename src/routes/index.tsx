@@ -57,7 +57,7 @@ export const Route = createFileRoute("/")({
           applicationCategory: "BusinessApplication",
           description:
             "AI-native Revenue Operating System that unifies research, prospecting, outreach, CRM and analytics with 15 specialized AI agents.",
-          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+          offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
           operatingSystem: "Web",
         }),
       },

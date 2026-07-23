@@ -51,7 +51,7 @@ function LoginPage() {
           title={<>Your AI revenue team is <span className="brand-text">already working.</span></>}
           subtitle="15 specialized agents have been researching accounts, scoring leads, and drafting outreach while you were away."
           stats={[
-            { icon: BarChart3, label: "Pipeline generated overnight", value: "$284K" },
+            { icon: BarChart3, label: "Pipeline generated overnight", value: "₹2.4Cr" },
             { icon: Bot, label: "Agent actions since last login", value: "1,204" },
             { icon: Zap, label: "New buying signals detected", value: "37" },
           ]}
