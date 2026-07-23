@@ -12,7 +12,7 @@ import {
   Linkedin,
   TrendingUp,
   Users,
-  DollarSign,
+  IndianRupee,
   Zap,
   Flame,
   Building2,
@@ -670,7 +670,7 @@ function deriveBuyingSignals(lead: Lead) {
   for (const s of lead.signals) {
     if (s.tone === "intent") out.push({ icon: TrendingUp, text: `${s.label} — high buying intent detected`, tone: "text-indigo-500" });
     else if (s.tone === "hiring") out.push({ icon: Users, text: `${s.label} — team expansion in progress`, tone: "text-emerald-500" });
-    else if (s.tone === "funding") out.push({ icon: DollarSign, text: `${s.label} — fresh budget available`, tone: "text-amber-500" });
+    else if (s.tone === "funding") out.push({ icon: IndianRupee, text: `${s.label} — fresh budget available`, tone: "text-amber-500" });
     else if (s.tone === "tech") out.push({ icon: Zap, text: `${s.label} — compatible stack`, tone: "text-sky-500" });
   }
   if (out.length === 0) {

@@ -13,7 +13,7 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Calendar,
-  DollarSign,
+  IndianRupee,
   Flame,
   Sparkles,
   Target,
@@ -120,16 +120,18 @@ function StatCard({ stat }: { stat: Stat }) {
   const TrendIcon = positive ? ArrowUpRight : ArrowDownRight;
   return (
     <Link to={stat.href} className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl">
-      <Card className="transition-all hover:shadow-lg hover:-translate-y-0.5">
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between">
-            <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-            <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", stat.iconClass)}>
-              <Icon className="h-4 w-4" />
+      <Card className="h-full transition-all hover:shadow-lg hover:-translate-y-0.5">
+        <CardContent className="flex h-full flex-col p-6">
+          <div className="flex items-center justify-between gap-3">
+            <p className="min-w-0 truncate text-sm font-medium text-muted-foreground">{stat.label}</p>
+            <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", stat.iconClass)}>
+              <Icon className="h-5 w-5" />
             </div>
           </div>
-          <p className="mt-4 text-3xl font-bold tracking-tight text-foreground">{stat.value}</p>
-          <div className="mt-3 flex items-center gap-2">
+          <p className="mt-5 text-3xl font-bold leading-none tracking-tight text-foreground sm:text-4xl">
+            {stat.value}
+          </p>
+          <div className="mt-auto flex items-center gap-2 pt-4">
             <span
               className={cn(
                 "inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-semibold",
@@ -179,19 +181,19 @@ function PipelineChart() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <div>
+      <CardHeader className="flex flex-col gap-2 space-y-0 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <CardTitle>Pipeline Overview</CardTitle>
           <p className="mt-1 text-xs text-muted-foreground">Last 6 months · live deal values</p>
         </div>
-        <Badge variant="secondary" className="font-medium">
+        <Badge variant="secondary" className="w-fit font-medium">
           {rangeLabel}
         </Badge>
       </CardHeader>
       <CardContent className="pb-6">
-        <div className="h-72 w-full">
+        <div className="h-80 min-h-[320px] w-full sm:h-96">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={months} margin={{ top: 10, right: 12, left: -8, bottom: 0 }}>
+            <AreaChart data={months} margin={{ top: 12, right: 16, left: 4, bottom: 8 }}>
               <defs>
                 <linearGradient id="pipelineCreated" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#6366f1" stopOpacity={0.35} />
@@ -262,11 +264,11 @@ function RecentActivity() {
       <CardHeader>
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-1">
+      <CardContent className="divide-y divide-border/60">
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 px-2 py-3">
-              <Skeleton className="h-9 w-9 rounded-full" />
+            <div key={i} className="flex items-center gap-4 px-2 py-4">
+              <Skeleton className="h-10 w-10 rounded-full" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-3 w-1/3" />
@@ -281,20 +283,20 @@ function RecentActivity() {
             return (
               <div
                 key={t.id}
-                className="flex items-center gap-4 rounded-lg px-2 py-3 transition-colors hover:bg-muted/50"
+                className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg px-2 py-4 transition-colors hover:bg-muted/50 sm:gap-4"
               >
-                <Avatar className="h-9 w-9">
+                <Avatar className="h-10 w-10 shrink-0">
                   <AvatarFallback className={cn("text-sm font-semibold text-white", statusColor(t.status))}>
                     {t.agent_name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-foreground">{t.task_description}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     {t.agent_name} · {relTime(t.created_at)}
                   </p>
                 </div>
-                <Badge variant="outline" className={cn("text-xs", KIND_STYLES[kind])}>
+                <Badge variant="outline" className={cn("shrink-0 justify-self-end text-xs capitalize", KIND_STYLES[kind])}>
                   {t.status}
                 </Badge>
               </div>
@@ -363,7 +365,7 @@ function DashboardPage() {
       iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary", href: "/lead-intelligence" },
     { label: "Meetings Booked", value: String(meetingsBooked), change: 0, icon: Calendar,
       iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary", href: "/campaign-studio" },
-    { label: "Won This Month", value: fmt(wonThisMonth), change: 0, icon: DollarSign,
+    { label: "Won This Month", value: fmt(wonThisMonth), change: 0, icon: IndianRupee,
       iconClass: "bg-gradient-to-br from-primary/10 to-brand-end/10 text-primary", href: "/analytics" },
   ];
 
