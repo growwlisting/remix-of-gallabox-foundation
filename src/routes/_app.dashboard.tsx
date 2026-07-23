@@ -215,7 +215,7 @@ function PipelineChart() {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(v) => `$${v}k`}
+                tickFormatter={(v) => `₹${v}k`}
               />
               <Tooltip
                 contentStyle={{
@@ -224,7 +224,7 @@ function PipelineChart() {
                   borderRadius: 8,
                   fontSize: 12,
                 }}
-                formatter={(value: number) => [`$${value}k`, ""]}
+                formatter={(value: number) => [`₹${value}k`, ""]}
               />
               <Legend
                 iconType="circle"
@@ -354,7 +354,7 @@ function DashboardPage() {
     .reduce((s, d) => s + (Number(d.value) || 0), 0);
   const meetingsBooked = campaigns.reduce((s, c) => s + (c.meetings_count || 0), 0);
   const fmt = (n: number) =>
-    n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` : n >= 1_000 ? `$${Math.round(n / 1_000)}K` : `$${n}`;
+    n >= 1_000_000 ? `₹${(n / 1_000_000).toFixed(1)}M` : n >= 1_000 ? `₹${Math.round(n / 1_000)}K` : `₹${n}`;
 
   const liveStats: Stat[] = [
     { label: "Pipeline Value", value: fmt(pipelineValue), change: 0, icon: TrendingUp,

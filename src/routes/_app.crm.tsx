@@ -91,9 +91,9 @@ const CHANNEL_OPTIONS = [
 
 function formatValue(n: number | null | undefined): string {
   if (n == null) return "—";
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
-  return `$${n}`;
+  if (n >= 1_000_000) return `₹${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `₹${(n / 1_000).toFixed(0)}K`;
+  return `₹${n}`;
 }
 
 function ChannelIcon({ type }: { type: string }) {
@@ -328,7 +328,7 @@ function CrmPage() {
               <Label htmlFor="value">Deal Value</Label>
               <div className="relative">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                  $
+                  ₹
                 </span>
                 <Input
                   id="value"

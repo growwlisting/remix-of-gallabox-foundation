@@ -57,7 +57,7 @@ export const Route = createFileRoute("/")({
           applicationCategory: "BusinessApplication",
           description:
             "AI-native Revenue Operating System that unifies research, prospecting, outreach, CRM and analytics with 15 specialized AI agents.",
-          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+          offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
           operatingSystem: "Web",
         }),
       },
@@ -384,10 +384,10 @@ function LandingPage() {
                   <div>
                     <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
                       {[
-                        { l: "Pipeline", v: "$2.4M" },
+                        { l: "Pipeline", v: "₹20Cr" },
                         { l: "Leads", v: "1,284" },
                         { l: "Meetings", v: "47" },
-                        { l: "Revenue", v: "$340K" },
+                        { l: "Revenue", v: "₹2.8Cr" },
                       ].map((k) => (
                         <div
                           key={k.l}
@@ -469,7 +469,7 @@ function LandingPage() {
                   "SDRs spend 70% of time on manual research",
                   "No context between research, outreach, and CRM",
                   "AI tools that don't talk to each other",
-                  "$15,000+/month in stack costs",
+                  "₹12,00,000+/month in stack costs",
                 ].map((t) => (
                   <li key={t} className="flex items-start gap-3 text-[15px] text-slate-700">
                     <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-400" />
@@ -721,7 +721,7 @@ function LandingPage() {
               {[
                 {
                   name: "Starter",
-                  price: "$299",
+                  price: "₹24,900",
                   suffix: "/mo",
                   features: [
                     "3 AI Agents active",
@@ -735,7 +735,7 @@ function LandingPage() {
                 },
                 {
                   name: "Growth",
-                  price: "$799",
+                  price: "₹66,500",
                   suffix: "/mo",
                   features: [
                     "All 15 AI Agents",

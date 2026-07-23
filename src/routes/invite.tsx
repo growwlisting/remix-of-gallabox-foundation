@@ -26,7 +26,7 @@ function InvitePage() {
           stats={[
             { icon: Users, label: "Teammates already active", value: "12" },
             { icon: Layers, label: "Shared workspaces", value: "3" },
-            { icon: PartyPopper, label: "Free to accept", value: "$0" },
+            { icon: PartyPopper, label: "Free to accept", value: "₹0" },
           ]}
         />
       }
